@@ -1,0 +1,196 @@
+@page "/travel-journal"
+@using System.Linq
+@using System.ComponentModel.DataAnnotations
+
+<div class="min-h-screen bg-gray-100 p-4 sm:p-6 lg:p-8">
+    <div class="max-w-4xl mx-auto">
+        <header class="mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">My Travel Journal</h1>
+        </header>
+
+        <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex-grow sm:max-w-xs">
+                <label for="trip-select" class="block text-sm font-medium text-gray-700 mb-1">Select Trip</label>
+                <InputSelect id="trip-select" @bind-Value="SelectedTripId" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md shadow-sm">
+                    <option value="">-- Select a Trip --</option>
+                    @if (AllTrips != null)
+                    {
+                        @foreach (var trip in AllTrips)
+                        {
+                            <option value="@trip.Id">@trip.Name</option>
+                        }
+                    }
+                </InputSelect>
+            </div>
+            <button @onclick="AddNewEntry"
+                    class="mt-4 sm:mt-0 w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <i class="fas fa-plus mr-2"></i>
+                New Entry
+            </button>
+        </div>
+
+        @if (FilteredAndGroupedEntries.Any())
+        {
+            <div class="space-y-8">
+                @foreach (var dateGroup in FilteredAndGroupedEntries)
+                {
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-300">
+                            @dateGroup.Key.ToString("MMMM dd, yyyy")
+                        </h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            @foreach (var entry in dateGroup)
+                            {
+                                <div class="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col">
+                                    <div class="w-full h-48 bg-gray-200">
+                                        <img src="@entry.PhotoUrl" alt="@entry.Title" class="w-full h-full object-cover">
+                                    </div>
+                                    <div class="p-4 flex-grow">
+                                        <h3 class="text-lg font-semibold text-gray-800 mb-1">@entry.Title</h3>
+                                        <div class="flex items-center text-sm text-gray-600 mb-2">
+                                            <i class="@GetMoodIcon(entry.Mood) mr-2 @GetMoodColor(entry.Mood)"></i>
+                                            <span>@entry.Mood</span>
+                                        </div>
+                                        <p class="text-sm text-gray-600 line-clamp-3">@entry.Description</p>
+                                    </div>
+                                    <div class="p-3 bg-gray-50 border-t border-gray-200 flex justify-end space-x-2">
+                                        <button @onclick="() => EditEntry(entry.Id)" title="Edit"
+                                                class="text-gray-500 hover:text-indigo-600 transition-colors">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button @onclick="() => DeleteEntry(entry.Id)" title="Delete"
+                                                class="text-gray-500 hover:text-red-600 transition-colors">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-10">
+                <p class="text-gray-500">No journal entries found. Start by adding a new entry!</p>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private List<TripModel> AllTrips { get; set; } = new();
+    private List<TravelJournalEntryModel> AllJournalEntries { get; set; } = new();
+    private string? SelectedTripId { get; set; }
+
+    private IEnumerable<IGrouping<DateTime, TravelJournalEntryModel>> FilteredAndGroupedEntries
+    {
+        get
+        {
+            IEnumerable<TravelJournalEntryModel> entries = AllJournalEntries ?? Enumerable.Empty<TravelJournalEntryModel>();
+            if (!string.IsNullOrEmpty(SelectedTripId))
+            {
+                entries = entries.Where(e => e.TripId == SelectedTripId);
+            }
+            return entries
+                .OrderByDescending(e => e.Date)
+                .GroupBy(e => e.Date.Date)
+                .OrderByDescending(g => g.Key);
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        LoadSampleData();
+        // Optionally, select the first trip by default
+        // if (AllTrips.Any())
+        // {
+        //    SelectedTripId = AllTrips.First().Id;
+        // }
+    }
+
+    private void LoadSampleData()
+    {
+        AllTrips = new List<TripModel>
+        {
+            new TripModel { Id = "trip1", Name = "Summer in Italy" },
+            new TripModel { Id = "trip2", Name = "Kyoto Cherry Blossoms" },
+            new TripModel { Id = "trip3", Name = "Hiking in the Rockies" }
+        };
+
+        AllJournalEntries = new List<TravelJournalEntryModel>
+        {
+            // Italy Trip
+            new TravelJournalEntryModel { Id = "entry1", TripId = "trip1", Date = new DateTime(2023, 7, 10), Title = "Arrival in Rome", Description = "Landed in Rome, excited to explore the ancient city. The Colosseum was breathtaking!", Mood = "Excited", PhotoUrl = "https://placehold.co/600x400?text=Rome+Colosseum" },
+            new TravelJournalEntryModel { Id = "entry2", TripId = "trip1", Date = new DateTime(2023, 7, 12), Title = "Venice Canals", Description = "Gondola ride in Venice. So romantic but a bit touristy. The city is sinking!", Mood = "Happy", PhotoUrl = "https://placehold.co/600x400?text=Venice+Canals" },
+            new TravelJournalEntryModel { Id = "entry3", TripId = "trip1", Date = new DateTime(2023, 7, 12), Title = "Lost my Luggage", Description = "Airline lost my luggage. Spent the afternoon dealing with forms. Frustrating!", Mood = "Sad", PhotoUrl = "https://placehold.co/600x400?text=Lost+Luggage" },
+            
+            // Kyoto Trip
+            new TravelJournalEntryModel { Id = "entry4", TripId = "trip2", Date = new DateTime(2024, 4, 5), Title = "Kinkaku-ji Temple", Description = "Visited the Golden Pavilion. Absolutely stunning reflection in the pond.", Mood = "Peaceful", PhotoUrl = "https://placehold.co/600x400?text=Kinkaku-ji" },
+            new TravelJournalEntryModel { Id = "entry5", TripId = "trip2", Date = new DateTime(2024, 4, 7), Title = "Arashiyama Bamboo Grove", Description = "Walked through the towering bamboo stalks. Felt so serene and otherworldly.", Mood = "Adventurous", PhotoUrl = "https://placehold.co/600x400?text=Bamboo+Grove" },
+
+            // Rockies Trip
+            new TravelJournalEntryModel { Id = "entry6", TripId = "trip3", Date = new DateTime(2023, 8, 15), Title = "Lake Louise Hike", Description = "Challenging hike but the views of Lake Louise were worth every step. The water is so blue!", Mood = "Accomplished", PhotoUrl = "https://placehold.co/600x400?text=Lake+Louise" },
+            new TravelJournalEntryModel { Id = "entry7", TripId = "trip3", Date = new DateTime(2023, 8, 15), Title = "Bear Sighting!", Description = "Saw a grizzly bear from a safe distance. A bit scary but thrilling!", Mood = "Excited", PhotoUrl = "https://placehold.co/600x400?text=Bear+Sighting" }
+        };
+    }
+
+    private string GetMoodIcon(string mood)
+    {
+        return mood?.ToLower() switch
+        {
+            "happy" => "fas fa-smile",
+            "sad" => "fas fa-frown",
+            "excited" => "fas fa-grin-stars",
+            "peaceful" => "fas fa-dove",
+            "adventurous" => "fas fa-compass",
+            "accomplished" => "fas fa-trophy",
+            "neutral" => "fas fa-meh",
+            _ => "fas fa-question-circle"
+        };
+    }
+
+    private string GetMoodColor(string mood)
+    {
+        return mood?.ToLower() switch
+        {
+            "happy" => "text-green-500",
+            "sad" => "text-blue-500",
+            "excited" => "text-yellow-500",
+            "peaceful" => "text-teal-500",
+            "adventurous" => "text-orange-500",
+            "accomplished" => "text-purple-500",
+            "neutral" => "text-gray-500",
+            _ => "text-gray-400"
+        };
+    }
+
+    private void AddNewEntry()
+    {
+        // Placeholder: Navigate to a new entry page or open a modal
+        Console.WriteLine("Add New Entry button clicked.");
+        // Example: NavManager.NavigateTo("/travel-journal/new");
+    }
+
+    private void EditEntry(string entryId)
+    {
+        // Placeholder: Navigate to an edit page or open a modal
+        Console.WriteLine($"Edit entry: {entryId}");
+        // Example: NavManager.NavigateTo($"/travel-journal/edit/{entryId}");
+    }
+
+    private void DeleteEntry(string entryId)
+    {
+        // Placeholder: Confirm and delete entry
+        Console.WriteLine($"Delete entry: {entryId}");
+        var entryToRemove = AllJournalEntries.FirstOrDefault(e => e.Id == entryId);
+        if (entryToRemove != null)
+        {
+            // In a real app, you would also update the backend
+            // AllJournalEntries.Remove(entryToRemove);
+            // StateHasChanged(); // To re-render the list
+            Console.WriteLine($"Would delete {entryToRemove.Title}. For demo, data is not mutated.");
+        }
+    }
+}

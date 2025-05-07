@@ -1,0 +1,25 @@
+/* Add Font Awesome if not globally available */
+
+/* Style QuickGrid headers */
+::deep .quickgrid th {
+    @apply px-4 py-3 sm:px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50;
+}
+
+/* Style QuickGrid rows */
+::deep .quickgrid tr:nth-child(even) {
+    @apply bg-white;
+}
+::deep .quickgrid tr:nth-child(odd) {
+    @apply bg-gray-50;
+}
+
+/* Ensure dropdowns in column options don't overflow */
+::deep .col-options {
+     max-width: 250px; /* Adjust as needed */
+     overflow: visible; /* Allow dropdown to expand */
+}
+
+/* Style action buttons for better spacing and alignment */
+::deep .quickgrid td:last-child {
+    white-space: nowrap;
+}

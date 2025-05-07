@@ -1,0 +1,138 @@
+@page "/settings"
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Forms
+
+<div class="min-h-screen bg-gray-100 p-4 sm:p-8">
+    <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">Settings</h1>
+
+    <div class="mb-4 border-b border-gray-200">
+        <nav class="-mb-px flex space-x-4 sm:space-x-8" aria-label="Tabs">
+            <button @onclick="@(() => SetActiveTab("Profile"))"
+                    class="@GetTabClass("Profile")">
+                <i class="fas fa-user mr-2"></i> Profile
+            </button>
+            <button @onclick="@(() => SetActiveTab("Preferences"))"
+                    class="@GetTabClass("Preferences")">
+                <i class="fas fa-sliders-h mr-2"></i> Preferences
+            </button>
+            <button @onclick="@(() => SetActiveTab("Notifications"))"
+                    class="@GetTabClass("Notifications")">
+                <i class="fas fa-bell mr-2"></i> Notifications
+            </button>
+        </nav>
+    </div>
+
+    <div class="mt-6">
+        @if (activeTab == "Profile")
+        {
+            <ProfileSettings UserSettings="@userSettings" OnSave="@HandleSaveProfile" />
+        }
+        else if (activeTab == "Preferences")
+        {
+            <PreferencesSettings UserSettings="@userSettings" OnSave="@HandleSavePreferences" />
+        }
+        else if (activeTab == "Notifications")
+        {
+            <NotificationsSettings UserSettings="@userSettings" OnSave="@HandleSaveNotifications" />
+        }
+    </div>
+
+</div>
+
+@code {
+    private string activeTab = "Profile";
+    private UserSettingsViewModel userSettings = new(); // Initialize with default or fetched data
+    private UserSettingsViewModel originalUserSettings = new(); // To store original state for cancellation
+
+    // Mock User Data and Settings
+    private UserViewModel currentUser = new()
+    {
+        Id = "user123",
+        Name = "Alex Johnson",
+        Email = "alex.j@example.com",
+        ProfilePictureUrl = "https://placehold.co/100x100?text=AJ"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        // In a real app, fetch user settings based on the logged-in user
+        // For demo purposes, we initialize with some defaults
+        userSettings = new UserSettingsViewModel
+            {
+                Id = "settings456",
+                UserId = currentUser.Id,
+                DefaultTripType = "Leisure",
+                PreferredDestinations = new[] { "Paris, France", "Kyoto, Japan" },
+                TimeZone = "America/New_York",
+                NotifyBookings = true,
+                NotifyChanges = true,
+                NotifyDeals = false,
+                // Include user details for the profile section
+                UserName = currentUser.Name,
+                UserEmail = currentUser.Email,
+                ProfilePictureUrl = currentUser.ProfilePictureUrl
+            };
+
+        // Store the initial state for potential cancellation across components if needed
+        // (Although each component handles its own cancel here)
+        originalUserSettings = userSettings.Clone(); // Requires Clone method in ViewModel
+
+        await base.OnInitializedAsync();
+    }
+
+    private void SetActiveTab(string tabName)
+    {
+        activeTab = tabName;
+    }
+
+    private string GetTabClass(string tabName)
+    {
+        bool isActive = activeTab == tabName;
+        return $"whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm sm:text-base focus:outline-none transition-colors duration-150 ease-in-out " +
+               (isActive
+                   ? "border-indigo-500 text-indigo-600"
+                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300");
+    }
+
+    // Placeholder save handlers - In a real app, these would call an API
+    private async Task HandleSaveProfile(UserSettingsViewModel updatedSettings)
+    {
+        Console.WriteLine("Saving Profile...");
+        // Simulate API call
+        await Task.Delay(500);
+        // Update the main model if necessary (though child component already updated its copy)
+        userSettings.UserName = updatedSettings.UserName;
+        userSettings.UserEmail = updatedSettings.UserEmail;
+        userSettings.ProfilePictureUrl = updatedSettings.ProfilePictureUrl; // Update URL if changed
+        currentUser.Name = updatedSettings.UserName; // Update related user model if needed
+        currentUser.Email = updatedSettings.UserEmail;
+        currentUser.ProfilePictureUrl = updatedSettings.ProfilePictureUrl;
+        originalUserSettings = userSettings.Clone(); // Update original state after successful save
+        Console.WriteLine("Profile Saved.");
+        StateHasChanged(); // Refresh UI if needed
+    }
+
+    private async Task HandleSavePreferences(UserSettingsViewModel updatedSettings)
+    {
+        Console.WriteLine("Saving Preferences...");
+        await Task.Delay(500);
+        userSettings.DefaultTripType = updatedSettings.DefaultTripType;
+        userSettings.PreferredDestinations = updatedSettings.PreferredDestinations;
+        userSettings.TimeZone = updatedSettings.TimeZone;
+        originalUserSettings = userSettings.Clone();
+        Console.WriteLine("Preferences Saved.");
+        StateHasChanged();
+    }
+
+    private async Task HandleSaveNotifications(UserSettingsViewModel updatedSettings)
+    {
+        Console.WriteLine("Saving Notifications...");
+        await Task.Delay(500);
+        userSettings.NotifyBookings = updatedSettings.NotifyBookings;
+        userSettings.NotifyChanges = updatedSettings.NotifyChanges;
+        userSettings.NotifyDeals = updatedSettings.NotifyDeals;
+        originalUserSettings = userSettings.Clone();
+        Console.WriteLine("Notifications Saved.");
+        StateHasChanged();
+    }
+}

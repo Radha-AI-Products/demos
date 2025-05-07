@@ -1,0 +1,21 @@
+{
+  "name": "tailwindwasm",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "css:build": "npx tailwindcss -i wwwroot/css/app.css -o wwwroot/css/app.min.css --minify"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.2",
+    "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/typography": "^0.5.16",
+    "daisyui": "^5.0.11"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^4.1.5"
+  }
+}
