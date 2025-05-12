@@ -49,5 +49,5 @@ Follow these steps to build and run the TripMate demo application, as demonstrat
 6.  **Explore the TripMate UI:** You can now interact with the TripMate demo, showcasing Blazor components built with Instruct UI and styled with Tailwind CSS, just as shown in the YouTube video.
 
 7.  **Conclusion:** Now that you have the TripMate demo set up, you can explore and modify the application as needed. Feel free to make changes, experiment, and build your own travel planning app using Blazor and InstructUI.
-8.  For more information on  InstuctUI visit: [InstructUI](https://instructui.com/)
+8.  For more information on  InstuctUI visit: [Instruct UI](https://instructui.com/)
 
