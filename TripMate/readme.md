@@ -1,6 +1,6 @@
-# TripMate Demo: Build a Modern Travel App Front-End in Minutes with Blazor & InstructUI
+# TripMate Demo: Build a Modern Travel App Front-End in Minutes with Blazor & Instruct UI
 
-This demo showcases the source code used in the YouTube video "[Build an TripMate Front-End in Minutes Using Blazor & Instruct UI](https://www.youtube.com/watch?v=4EnZ0s9cAmo)". It highlights how quickly you can create a modern, responsive travel planning app UI using [InstructUI](https://instructui.com/), a conversation AI tool for Blazor UI development, styled with [Tailwind CSS](https://tailwindcss.com/).
+This demo showcases the source code used in the YouTube video "[Build an TripMate Front-End in Minutes Using Blazor & Instruct UI](https://www.youtube.com/watch?v=4EnZ0s9cAmo)". It highlights how quickly you can create a modern, responsive travel planning app UI using [Instruct UI](https://instructui.com/), a conversation AI tool for Blazor UI development, styled with [Tailwind CSS](https://tailwindcss.com/).
 
 ## Prerequisites
 
@@ -46,7 +46,7 @@ Follow these steps to build and run the TripMate demo application, as demonstrat
 
 5.  **Access the application in your browser:** Once the build and run process is complete, the terminal will display the URL where the application is hosted (usually something like `https://localhost:xxxx` or `http://localhost:xxxx`). Open this URL in your web browser to view the TripMate UI.
 
-6.  **Explore the TripMate UI:** You can now interact with the TripMate demo, showcasing Blazor components built with InstructUI and styled with Tailwind CSS, just as shown in the YouTube video.
+6.  **Explore the TripMate UI:** You can now interact with the TripMate demo, showcasing Blazor components built with Instruct UI and styled with Tailwind CSS, just as shown in the YouTube video.
 
 7.  **Conclusion:** Now that you have the TripMate demo set up, you can explore and modify the application as needed. Feel free to make changes, experiment, and build your own travel planning app using Blazor and InstructUI.
 8.  For more information on  InstuctUI visit: [InstructUI](https://instructui.com/)
