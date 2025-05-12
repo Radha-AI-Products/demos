@@ -1,0 +1,14 @@
+/* Add styles for the open state of the details element if needed */
+details[open] summary .fa-chevron-right {
+    transform: rotate(90deg);
+}
+
+/* Style validation messages */
+.validation-message {
+    color: #e53e3e; /* Tailwind red-600 */
+    font-size: 0.875rem; /* text-sm */
+    margin-top: 0.25rem; /* mt-1 */
+}
+
+/* Ensure Font Awesome is loaded (typically in your main layout or _Host.cshtml/_Layout.cshtml) */
+/* Example link: <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" /> */

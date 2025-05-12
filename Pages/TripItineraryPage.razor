@@ -1,0 +1,263 @@
+@page "/trip-itinerary"
+@using System.Linq
+@using System.ComponentModel.DataAnnotations
+
+<div class="container mx-auto p-4 md:p-6 lg:p-8">
+    <h1 class="text-3xl font-bold mb-6 text-gray-800">Trip Itinerary</h1>
+
+    <!-- Trip Summary -->
+    <div class="bg-white shadow-md rounded-lg p-6 mb-8 border border-gray-200">
+        <h2 class="text-2xl font-semibold mb-4 text-indigo-700">Trip Summary</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                <p class="text-sm font-medium text-gray-500">Destination</p>
+                <p class="text-lg text-gray-900">@tripSummary.Destination</p>
+            </div>
+            <div>
+                <p class="text-sm font-medium text-gray-500">Dates</p>
+                <p class="text-lg text-gray-900">@tripSummary.StartDate.ToString("MMM dd, yyyy") - @tripSummary.EndDate.ToString("MMM dd, yyyy")</p>
+            </div>
+            <div>
+                <p class="text-sm font-medium text-gray-500">Trip Type</p>
+                <p class="text-lg text-gray-900">@tripSummary.TripType</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Daily Itinerary Accordion -->
+    <div class="space-y-4">
+        @if (groupedItinerary == null || !groupedItinerary.Any())
+        {
+            <p class="text-center text-gray-500">No itinerary items yet. Add activities for specific dates.</p>
+            <button @onclick="() => ShowAddActivityForm(DateTime.Today)" class="mt-4 mx-auto block bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out">
+                <i class="fas fa-plus mr-2"></i>Add First Activity
+            </button>
+        }
+        else
+        {
+            @foreach (var dayGroup in groupedItinerary.OrderBy(g => g.Key))
+            {
+                var groupDate = dayGroup.Key; // Capture loop variable
+                <details class="bg-white shadow rounded-lg border border-gray-200 group" @key="groupDate">
+                    <summary class="flex justify-between items-center p-4 cursor-pointer list-none group-open:border-b group-open:border-gray-200">
+                        <div class="flex items-center">
+                             <span class="font-semibold text-lg text-gray-700">@groupDate.ToString("dddd, MMM dd, yyyy")</span>
+                             <span class="ml-3 px-2 py-0.5 bg-gray-200 text-gray-700 text-xs font-medium rounded-full">@dayGroup.Count() @(dayGroup.Count() == 1 ? "activity" : "activities")</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                             <button @onclick:stopPropagation @onclick="() => ShowAddActivityForm(groupDate)" class="text-sm bg-green-500 hover:bg-green-600 text-white font-semibold py-1 px-3 rounded transition duration-150 ease-in-out">
+                                <i class="fas fa-plus mr-1"></i> Add Activity
+                            </button>
+                            <span class="text-gray-400 group-open:rotate-90 transition-transform duration-200">
+                                <i class="fas fa-chevron-right"></i>
+                            </span>
+                        </div>
+                    </summary>
+                    <div class="p-4 space-y-3">
+                        @foreach (var activity in dayGroup.OrderBy(a => a.Time))
+                        {
+                            var currentActivity = activity; // Capture loop variable
+                            <div class="flex justify-between items-start p-3 bg-gray-50 rounded border border-gray-100" @key="currentActivity.Id">
+                                <div class="flex-grow pr-4">
+                                    <p class="font-semibold text-gray-800">@currentActivity.Title</p>
+                                    <div class="flex items-center text-sm text-gray-600 mt-1 space-x-3">
+                                        <span><i class="far fa-clock mr-1 text-indigo-500"></i>@currentActivity.Time</span>
+                                        <span><i class="fas fa-map-marker-alt mr-1 text-red-500"></i>@currentActivity.Location</span>
+                                        <span><i class="fas fa-tag mr-1 text-blue-500"></i>@currentActivity.Category</span>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-2 text-gray-500">
+                                    <button @onclick="() => ShowEditActivityForm(currentActivity)" class="hover:text-indigo-600 transition duration-150 ease-in-out" title="Edit">
+                                        <i class="fas fa-pencil-alt"></i>
+                                    </button>
+                                    <button @onclick="() => DeleteActivity(currentActivity.Id)" class="hover:text-red-600 transition duration-150 ease-in-out" title="Delete">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                        @if (!dayGroup.Any())
+                        {
+                             <p class="text-sm text-gray-500 italic">No activities planned for this day yet.</p>
+                        }
+                    </div>
+                </details>
+            }
+        }
+    </div>
+
+    <!-- Add/Edit Activity Modal -->
+    @if (showModal)
+    {
+        <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center" id="my-modal">
+            <div class="relative mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white">
+                <div class="mt-3 text-center">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">@(isEditing ? "Edit Activity" : "Add New Activity")</h3>
+                    <EditForm Model="@currentActivityModel" OnValidSubmit="HandleValidSubmit" class="mt-2 px-7 py-3 text-left">
+                        <DataAnnotationsValidator />
+                        @* <ValidationSummary /> *@ @* Optional: Show all errors at top *@
+
+                        <div class="mb-4">
+                            <label for="activity-date" class="block text-sm font-medium text-gray-700">Date</label>
+                            @* Display date, not editable in the form directly for simplicity, set when opening modal *@
+                            <input type="text" id="activity-date" readonly value="@currentActivityModel.Date.ToString("yyyy-MM-dd")" class="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md shadow-sm focus:outline-none sm:text-sm" />
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="activity-time" class="block text-sm font-medium text-gray-700">Time (HH:mm)</label>
+                            <InputText id="activity-time" @bind-Value="currentActivityModel.Time" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., 14:30" />
+                            <ValidationMessage For="@(() => currentActivityModel.Time)" class="text-red-600 text-sm mt-1" />
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="activity-title" class="block text-sm font-medium text-gray-700">Title</label>
+                            <InputText id="activity-title" @bind-Value="currentActivityModel.Title" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+                            <ValidationMessage For="@(() => currentActivityModel.Title)" class="text-red-600 text-sm mt-1" />
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="activity-location" class="block text-sm font-medium text-gray-700">Location</label>
+                            <InputText id="activity-location" @bind-Value="currentActivityModel.Location" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+                            <ValidationMessage For="@(() => currentActivityModel.Location)" class="text-red-600 text-sm mt-1" />
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="activity-category" class="block text-sm font-medium text-gray-700">Category</label>
+                            <InputSelect id="activity-category" @bind-Value="currentActivityModel.Category" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <option value="Sightseeing">Sightseeing</option>
+                                <option value="Food">Food</option>
+                                <option value="Transport">Transport</option>
+                                <option value="Accommodation">Accommodation</option>
+                                <option value="Shopping">Shopping</option>
+                                <option value="Activity">Activity</option>
+                                <option value="Meeting">Meeting</option>
+                                <option value="Other">Other</option>
+                            </InputSelect>
+                            <ValidationMessage For="@(() => currentActivityModel.Category)" class="text-red-600 text-sm mt-1" />
+                        </div>
+
+                        <div class="items-center px-4 py-3 flex justify-end space-x-2">
+                            <button type="button" @onclick="CloseModal" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition duration-150 ease-in-out">
+                                Cancel
+                            </button>
+                            <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
+                                @(isEditing ? "Save Changes" : "Add Activity")
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private TripSummaryViewModel tripSummary = new();
+    private List<ItineraryItem> itineraryItems = new();
+    private IEnumerable<IGrouping<DateTime, ItineraryItem>>? groupedItinerary;
+
+    private bool showModal = false;
+    private bool isEditing = false;
+    private ItineraryItem currentActivityModel = new();
+
+    private List<string> categories = new() { "Sightseeing", "Food", "Transport", "Accommodation", "Shopping", "Activity", "Meeting", "Other" };
+
+    protected override void OnInitialized()
+    {
+        LoadInitialData();
+        GroupItineraryItems();
+    }
+
+    private void LoadInitialData()
+    {
+        // Mock data - replace with actual data fetching logic
+        itineraryItems = new List<ItineraryItem>
+        {
+            new ItineraryItem { Date = DateTime.Today.AddDays(7), Time = "09:00", Title = "Visit Eiffel Tower", Location = "Champ de Mars, Paris", Category = "Sightseeing" },
+            new ItineraryItem { Date = DateTime.Today.AddDays(7), Time = "13:00", Title = "Lunch at Le Bouillon Chartier", Location = "Grands Boulevards, Paris", Category = "Food" },
+            new ItineraryItem { Date = DateTime.Today.AddDays(8), Time = "10:30", Title = "Louvre Museum Tour", Location = "Rue de Rivoli, Paris", Category = "Sightseeing" },
+            new ItineraryItem { Date = DateTime.Today.AddDays(8), Time = "19:00", Title = "Dinner Cruise on the Seine", Location = "Seine River, Paris", Category = "Activity" },
+            new ItineraryItem { Date = DateTime.Today.AddDays(9), Time = "11:00", Title = "Explore Montmartre & Sacré-Cœur", Location = "Montmartre, Paris", Category = "Sightseeing" },
+        };
+    }
+
+    private void GroupItineraryItems()
+    {
+        groupedItinerary = itineraryItems.GroupBy(item => item.Date.Date); // Group by Date part only
+        StateHasChanged(); // Ensure UI updates after grouping
+    }
+
+    private void ShowAddActivityForm(DateTime date)
+    {
+        isEditing = false;
+        currentActivityModel = new ItineraryItem
+        {
+            Id = Guid.NewGuid().ToString(), // Generate new ID for potential add
+            Date = date.Date, // Set the date for the new activity
+            Time = "09:00", // Default time
+            Category = "Sightseeing" // Default category
+        };
+        showModal = true;
+        StateHasChanged();
+    }
+
+    private void ShowEditActivityForm(ItineraryItem itemToEdit)
+    {
+        isEditing = true;
+        // Clone the item to avoid modifying the original list directly until save
+        currentActivityModel = new ItineraryItem
+        {
+            Id = itemToEdit.Id,
+            Date = itemToEdit.Date,
+            Time = itemToEdit.Time,
+            Title = itemToEdit.Title,
+            Location = itemToEdit.Location,
+            Category = itemToEdit.Category
+        };
+        showModal = true;
+        StateHasChanged();
+    }
+
+    private void HandleValidSubmit()
+    {
+        if (isEditing)
+        {
+            // Find the existing item and update it
+            var existingItem = itineraryItems.FirstOrDefault(item => item.Id == currentActivityModel.Id);
+            if (existingItem != null)
+            {
+                existingItem.Time = currentActivityModel.Time;
+                existingItem.Title = currentActivityModel.Title;
+                existingItem.Location = currentActivityModel.Location;
+                existingItem.Category = currentActivityModel.Category;
+                // Date is not editable in this modal setup, but could be added
+            }
+        }
+        else
+        {
+            // Add the new item
+            itineraryItems.Add(currentActivityModel);
+        }
+
+        CloseModal();
+        GroupItineraryItems(); // Re-group after adding/editing
+    }
+
+    private void DeleteActivity(string id)
+    {
+        var itemToRemove = itineraryItems.FirstOrDefault(item => item.Id == id);
+        if (itemToRemove != null)
+        {
+            itineraryItems.Remove(itemToRemove);
+            GroupItineraryItems(); // Re-group after deleting
+        }
+        // Optional: Add confirmation dialog before deleting
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+        currentActivityModel = new(); // Reset the model
+        StateHasChanged();
+    }
+}

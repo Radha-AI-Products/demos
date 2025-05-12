@@ -1,0 +1,173 @@
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Forms
+
+<div class="bg-white shadow-md rounded-lg p-4 sm:p-6">
+    <h2 class="text-xl font-semibold text-gray-700 mb-4">Profile Information</h2>
+    <EditForm Model="@editingSettings" OnValidSubmit="HandleSave" FormName="ProfileSettingsForm">
+        <DataAnnotationsValidator /> @* Enable validation based on annotations *@
+
+        <div class="space-y-4">
+            @* Profile Picture *@
+            <div class="flex items-center space-x-4">
+                <img class="h-16 w-16 sm:h-20 sm:w-20 rounded-full object-cover" src="@(imageDataUrl ?? editingSettings.ProfilePictureUrl)" alt="Profile picture">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Profile Picture</label>
+                    <InputFile OnChange="OnInputFileChange" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer" accept="image/*" />
+                    <ValidationMessage For="@(() => editingSettings.ProfilePictureUrl)" />
+                     @if (!string.IsNullOrEmpty(uploadStatus))
+                    {
+                        <p class="text-sm mt-1 @(uploadError ? "text-red-600" : "text-green-600")">@uploadStatus</p>
+                    }
+                </div>
+            </div>
+
+            @* Name *@
+            <div>
+                <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+                <InputText id="name" @bind-Value="editingSettings.UserName" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+                <ValidationMessage For="@(() => editingSettings.UserName)" />
+            </div>
+
+            @* Email *@
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                <InputText id="email" type="email" @bind-Value="editingSettings.UserEmail" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+                <ValidationMessage For="@(() => editingSettings.UserEmail)" />
+            </div>
+        </div>
+
+        @* Action Buttons *@
+        <div class="mt-6 flex justify-end space-x-3">
+            <button type="button" @onclick="HandleCancel" class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                Cancel
+            </button>
+            <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" disabled="@isSaving">
+                 @if (isSaving)
+                {
+                    <i class="fas fa-spinner fa-spin mr-2"></i> @* Loading Spinner *@
+                    <span>Saving...</span>
+                }
+                else
+                {
+                    <i class="fas fa-save mr-2"></i>
+                    <span>Save Changes</span>
+                }
+            </button>
+        </div>
+        <ValidationSummary class="mt-4 text-red-600" />
+    </EditForm>
+</div>
+
+@code {
+    [Parameter] public UserSettingsViewModel UserSettings { get; set; } = new();
+    [Parameter] public EventCallback<UserSettingsViewModel> OnSave { get; set; }
+
+    private UserSettingsViewModel editingSettings = new();
+    private IBrowserFile? selectedFile;
+    private string? imageDataUrl; // For preview
+    private bool isSaving = false;
+    private string uploadStatus = "";
+    private bool uploadError = false;
+    private const long MaxFileSize = 5 * 1024 * 1024; // 5MB limit
+
+    protected override void OnParametersSet()
+    {
+        // Clone the settings when parameters are set to avoid modifying the original object directly
+        // This allows for cancellation
+        editingSettings = UserSettings.Clone();
+        imageDataUrl = null; // Reset preview on parameter set
+        selectedFile = null;
+        uploadStatus = "";
+        uploadError = false;
+    }
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        selectedFile = e.File;
+        imageDataUrl = null; // Clear previous preview
+        uploadStatus = "";
+        uploadError = false;
+
+        if (selectedFile != null)
+        {
+             if (selectedFile.Size > MaxFileSize)
+            {
+                uploadStatus = $"File size exceeds the limit of {MaxFileSize / (1024*1024)}MB.";
+                uploadError = true;
+                selectedFile = null; // Prevent further processing
+                return;
+            }
+
+            try
+            {
+                // Generate a preview
+                var format = selectedFile.ContentType;
+                var imageStream = selectedFile.OpenReadStream(MaxFileSize);
+                using var memoryStream = new MemoryStream();
+                await imageStream.CopyToAsync(memoryStream);
+                var imageBytes = memoryStream.ToArray();
+                imageDataUrl = $"data:{format};base64,{Convert.ToBase64String(imageBytes)}";
+                uploadStatus = "Image ready for preview.";
+                uploadError = false;
+                // In a real app, you might upload here or store the file/bytes for saving later
+                // For this example, we'll just update the URL on save if a new image was previewed.
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error processing file: {ex.Message}");
+                uploadStatus = "Error loading image preview.";
+                uploadError = true;
+                selectedFile = null;
+                imageDataUrl = null;
+            }
+        }
+        StateHasChanged();
+    }
+
+
+    private async Task HandleSave()
+    {
+        isSaving = true;
+        uploadStatus = ""; // Clear status on save attempt
+        uploadError = false;
+        StateHasChanged();
+
+        // Simulate upload if a new file was selected
+        if (selectedFile != null && imageDataUrl != null)
+        {
+            // In a real app: Upload selectedFile to storage, get the new URL
+            // For demo: We'll just use the placeholder URL or the preview data URL (not ideal for real use)
+            // Let's pretend upload is successful and we get a new URL
+            await Task.Delay(1000); // Simulate upload time
+            editingSettings.ProfilePictureUrl = $"https://placehold.co/100x100?text={editingSettings.UserName?.Substring(0, 2).ToUpperInvariant() ?? "???"}"; // Simulate new URL
+            Console.WriteLine("Simulated image upload complete.");
+            imageDataUrl = null; // Clear preview after "upload"
+            selectedFile = null;
+        }
+        else if (selectedFile != null && imageDataUrl == null && uploadError)
+        {
+             // Don't save if there was an upload error shown
+             isSaving = false;
+             StateHasChanged();
+             return;
+        }
+
+
+        // Invoke the parent component's save method
+        await OnSave.InvokeAsync(editingSettings);
+
+        isSaving = false;
+        StateHasChanged();
+    }
+
+    private void HandleCancel()
+    {
+        // Reset the editing model to the original state
+        editingSettings = UserSettings.Clone();
+        imageDataUrl = null; // Clear preview
+        selectedFile = null;
+        uploadStatus = "";
+        uploadError = false;
+        StateHasChanged(); // Update the UI
+    }
+}

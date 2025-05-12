@@ -1,0 +1,172 @@
+@page "/"
+@using System.Linq
+
+<div class="container mx-auto p-4 md:p-6 lg:p-8">
+
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl md:text-3xl font-semibold text-gray-800">My Trips</h1>
+        <button @onclick="AddNewTrip"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center transition duration-150 ease-in-out">
+            <i class="fas fa-plus mr-2"></i>
+            <span>New Trip</span>
+        </button>
+    </div>
+
+    <!-- Trip Cards Grid -->
+    @if (userTrips == null || !userTrips.Any())
+    {
+        <div class="text-center text-gray-500 mt-10">
+            <p>You haven't added any trips yet.</p>
+            <button @onclick="AddNewTrip" class="mt-4 text-blue-600 hover:underline">
+                Add your first trip!
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            @foreach (var trip in userTrips)
+            {
+                <div class="bg-white rounded-lg shadow-md overflow-hidden relative" @key="trip.Id">
+                    <div class="p-5">
+                        <!-- Card Header -->
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-1">@trip.Title</h3>
+                            <!-- Overflow Menu Button -->
+                            <div class="relative">
+                                <button @onclick="@(() => ToggleMenu(trip.Id))" class="text-gray-500 hover:text-gray-700 focus:outline-none p-1 -mr-1">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <!-- Overflow Menu Dropdown -->
+                                @if (openMenuTripId == trip.Id)
+                                {
+                                    <div class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
+                                        <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+                                            <button @onclick="@(() => EditTrip(trip.Id))" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
+                                                <i class="fas fa-edit w-4 mr-2"></i> Edit
+                                            </button>
+                                            <button @onclick="@(() => DuplicateTrip(trip.Id))" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
+                                                <i class="fas fa-copy w-4 mr-2"></i> Duplicate
+                                            </button>
+                                            <button @onclick="@(() => DeleteTrip(trip.Id))" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50" role="menuitem">
+                                                <i class="fas fa-trash-alt w-4 mr-2"></i> Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Card Body -->
+                        <p class="text-gray-600 mb-1"><i class="fas fa-map-marker-alt w-4 mr-2 text-gray-500"></i> @trip.Destination</p>
+                        <p class="text-gray-600 mb-1">
+                            <i class="fas fa-calendar-alt w-4 mr-2 text-gray-500"></i>
+                            @trip.StartDate.ToString("MMM dd, yyyy") - @trip.EndDate.ToString("MMM dd, yyyy")
+                        </p>
+                        <p class="text-gray-600 mb-4">
+                            <i class="fas fa-suitcase-rolling w-4 mr-2 text-gray-500"></i>
+                            <span class="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700">@trip.Type</span>
+                        </p>
+
+                        <!-- Card Footer -->
+                        <div class="text-right">
+                            <a href="@($"/itinerary/{trip.Id}")" class="text-blue-600 hover:text-blue-800 hover:underline font-medium">
+                                View Itinerary <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<Trip>? userTrips;
+    private string? openMenuTripId = null; // Tracks which trip's menu is open
+
+    protected override void OnInitialized()
+    {
+        // Load trips for the current user (replace with actual data fetching logic)
+        LoadSampleTrips();
+    }
+
+    private void LoadSampleTrips()
+    {
+        userTrips = new List<Trip>
+        {
+            new Trip { Title = "Paris Getaway", Destination = "Paris, France", StartDate = new DateTime(2024, 9, 10), EndDate = new DateTime(2024, 9, 17), Type = "Vacation" },
+            new Trip { Title = "Tokyo Business Summit", Destination = "Tokyo, Japan", StartDate = new DateTime(2024, 10, 5), EndDate = new DateTime(2024, 10, 9), Type = "Business" },
+            new Trip { Title = "Rocky Mountain Hike", Destination = "Banff, Canada", StartDate = new DateTime(2024, 8, 20), EndDate = new DateTime(2024, 8, 27), Type = "Adventure" },
+            new Trip { Title = "Rome History Tour", Destination = "Rome, Italy", StartDate = new DateTime(2024, 11, 1), EndDate = new DateTime(2024, 11, 8), Type = "Vacation" }
+        };
+    }
+
+    private void AddNewTrip()
+    {
+        // TODO: Implement logic to open a trip creation dialog/modal or navigate to a creation page
+        Console.WriteLine("Add New Trip clicked");
+        CloseMenu(); // Close any open menu
+    }
+
+    private void ToggleMenu(string tripId)
+    {
+        if (openMenuTripId == tripId)
+        {
+            openMenuTripId = null; // Close if already open
+        }
+        else
+        {
+            openMenuTripId = tripId; // Open the clicked menu
+        }
+        // No need for StateHasChanged() as Blazor handles UI updates for synchronous events
+    }
+
+    private void CloseMenu()
+    {
+        openMenuTripId = null;
+    }
+
+    private void EditTrip(string tripId)
+    {
+        // TODO: Implement logic to navigate to an edit page or open an edit modal
+        Console.WriteLine($"Edit Trip clicked for ID: {tripId}");
+        CloseMenu();
+    }
+
+    private void DeleteTrip(string tripId)
+    {
+        // TODO: Implement logic to confirm and delete the trip
+        Console.WriteLine($"Delete Trip clicked for ID: {tripId}");
+        userTrips?.RemoveAll(t => t.Id == tripId); // Example: Remove from list
+        CloseMenu();
+        // StateHasChanged(); // Needed if deletion happens asynchronously or if UI doesn't update automatically
+    }
+
+    private void DuplicateTrip(string tripId)
+    {
+        // TODO: Implement logic to duplicate the trip
+        Console.WriteLine($"Duplicate Trip clicked for ID: {tripId}");
+        var originalTrip = userTrips?.FirstOrDefault(t => t.Id == tripId);
+        if (originalTrip != null)
+        {
+            var newTrip = new Trip
+            {
+                // Create a new object, potentially modifying title/dates
+                Title = $"{originalTrip.Title} (Copy)",
+                Destination = originalTrip.Destination,
+                StartDate = originalTrip.StartDate,
+                EndDate = originalTrip.EndDate,
+                Type = originalTrip.Type,
+                UserId = originalTrip.UserId // Assign to the same user
+            };
+            userTrips?.Add(newTrip); // Example: Add to list
+            // StateHasChanged(); // Needed if duplication happens asynchronously
+        }
+        CloseMenu();
+    }
+
+    // Optional: Add a method to handle clicks outside the menu to close it
+    // This would typically involve JavaScript interop to detect clicks on the document body.
+}

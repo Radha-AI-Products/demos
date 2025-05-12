@@ -1,0 +1,186 @@
+@page "/bookings-dashboard"
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using System.Linq.Expressions
+@using Microsoft.AspNetCore.Components.Forms
+
+<h1 class="text-2xl font-semibold mb-6 text-gray-800">My Bookings</h1>
+
+<div class="mb-6 border-b border-gray-200">
+    <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+        <button @onclick="@(() => SetActiveTab("Flight"))"
+                class="@GetTabClass("Flight")">
+            <i class="fas fa-plane mr-2"></i> Flights
+        </button>
+        <button @onclick="@(() => SetActiveTab("Stay"))"
+                class="@GetTabClass("Stay")">
+            <i class="fas fa-hotel mr-2"></i> Stays
+        </button>
+        <button @onclick="@(() => SetActiveTab("Activity"))"
+                class="@GetTabClass("Activity")">
+            <i class="fas fa-ticket-alt mr-2"></i> Activities
+        </button>
+    </nav>
+</div>
+
+<div class="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div>
+        <label for="statusFilter" class="block text-sm font-medium text-gray-700 mb-1">Filter by Status:</label>
+        <InputSelect id="statusFilter" @bind-Value="selectedStatusFilter" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md shadow-sm">
+            <option value="">All Statuses</option>
+            @foreach (var status in distinctStatuses)
+            {
+                <option value="@status">@status</option>
+            }
+        </InputSelect>
+    </div>
+    <div>
+        <label for="tripFilter" class="block text-sm font-medium text-gray-700 mb-1">Filter by Trip:</label>
+        <InputSelect id="tripFilter" @bind-Value="selectedTripFilter" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md shadow-sm">
+            <option value="">All Trips</option>
+            @foreach (var tripId in distinctTripIds)
+            {
+                <option value="@tripId">Trip @tripId</option>
+            }
+        </InputSelect>
+    </div>
+</div>
+
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <QuickGrid Items="@FilteredBookings" Class="min-w-full divide-y divide-gray-200" ItemKey="@(b => b.Id)">
+        <PropertyColumn Property="@(b => b.Id)" Title="Booking ID" Sortable="true" Class="px-4 py-3 sm:px-6 text-xs sm:text-sm font-medium text-gray-700" />
+        <PropertyColumn Property="@(b => b.Provider)" Title="Provider" Sortable="true" Class="px-4 py-3 sm:px-6 text-xs sm:text-sm text-gray-600" />
+        <PropertyColumn Property="@(b => b.BookingDate)" Title="Date" Format="yyyy-MM-dd" Sortable="true" Class="px-4 py-3 sm:px-6 text-xs sm:text-sm text-gray-600" />
+        <TemplateColumn Title="Status" Sortable="true" Class="px-4 py-3 sm:px-6 text-xs sm:text-sm">
+            <ColumnOptions>
+                <div class="p-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Status:</label>
+                    <InputSelect @bind-Value="selectedStatusFilter" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md shadow-sm">
+                        <option value="">All Statuses</option>
+                        @foreach (var status in distinctStatuses)
+                        {
+                            <option value="@status">@status</option>
+                        }
+                    </InputSelect>
+                </div>
+            </ColumnOptions>
+            <ChildContent>
+                <span class="@GetStatusBadgeClass(context.Status)">
+                    @context.Status
+                </span>
+            </ChildContent>
+        </TemplateColumn>
+        <TemplateColumn Title="Actions" Class="px-4 py-3 sm:px-6 text-xs sm:text-sm text-right">
+            <a href="#" @onclick="@(() => ViewDetails(context.Id))" @onclick:preventDefault class="text-indigo-600 hover:text-indigo-900 mr-3 font-medium">View Details</a>
+            <button @onclick="@(() => RescheduleBooking(context.Id))" title="Reschedule" class="text-yellow-500 hover:text-yellow-700 mr-2 disabled:opacity-50" disabled="@(context.Status == "Cancelled")">
+                <i class="fas fa-calendar-alt"></i>
+            </button>
+            <button @onclick="@(() => CancelBooking(context.Id))" title="Cancel" class="text-red-500 hover:text-red-700 disabled:opacity-50" disabled="@(context.Status == "Cancelled")">
+                <i class="fas fa-times-circle"></i>
+            </button>
+        </TemplateColumn>
+    </QuickGrid>
+
+     @if (!FilteredBookings.Any())
+    {
+        <div class="text-center py-10 px-4 sm:px-6 text-gray-500">
+            No bookings found matching your criteria.
+        </div>
+    }
+</div>
+
+@code {
+    private string activeTab = "Flight"; // Default tab
+    private string selectedStatusFilter = "";
+    private string selectedTripFilter = "";
+
+    private List<BookingViewModel> allBookings = new();
+    private List<string> distinctStatuses = new();
+    private List<string> distinctTripIds = new();
+
+    protected override void OnInitialized()
+    {
+        // Sample Data - Replace with actual data fetching logic
+        allBookings = new List<BookingViewModel>
+        {
+            new BookingViewModel { Id = "FL123", TripId = "T1", BookingType = "Flight", Provider = "Airline A", BookingDate = DateTime.Now.AddDays(30), Status = "Confirmed", ReferenceCode = "REF1" },
+            new BookingViewModel { Id = "ST456", TripId = "T1", BookingType = "Stay", Provider = "Hotel B", BookingDate = DateTime.Now.AddDays(32), Status = "Confirmed", ReferenceCode = "REF2" },
+            new BookingViewModel { Id = "AC789", TripId = "T1", BookingType = "Activity", Provider = "Tour C", BookingDate = DateTime.Now.AddDays(33), Status = "Pending", ReferenceCode = "REF3" },
+            new BookingViewModel { Id = "FL987", TripId = "T2", BookingType = "Flight", Provider = "Airline D", BookingDate = DateTime.Now.AddDays(60), Status = "Cancelled", ReferenceCode = "REF4" },
+            new BookingViewModel { Id = "ST654", TripId = "T2", BookingType = "Stay", Provider = "Hotel E", BookingDate = DateTime.Now.AddDays(62), Status = "Confirmed", ReferenceCode = "REF5" },
+            new BookingViewModel { Id = "FL321", TripId = "T3", BookingType = "Flight", Provider = "Airline A", BookingDate = DateTime.Now.AddDays(90), Status = "Confirmed", ReferenceCode = "REF6" },
+            new BookingViewModel { Id = "AC111", TripId = "T1", BookingType = "Activity", Provider = "Museum Visit", BookingDate = DateTime.Now.AddDays(34), Status = "Confirmed", ReferenceCode = "REF7" },
+        };
+
+        distinctStatuses = allBookings.Select(b => b.Status).Distinct().OrderBy(s => s).ToList();
+        distinctTripIds = allBookings.Select(b => b.TripId).Distinct().OrderBy(t => t).ToList();
+    }
+
+    private IQueryable<BookingViewModel> FilteredBookings
+    {
+        get
+        {
+            var query = allBookings.AsQueryable()
+                                   .Where(b => b.BookingType == activeTab);
+
+            if (!string.IsNullOrEmpty(selectedStatusFilter))
+            {
+                query = query.Where(b => b.Status == selectedStatusFilter);
+            }
+
+            if (!string.IsNullOrEmpty(selectedTripFilter))
+            {
+                query = query.Where(b => b.TripId == selectedTripFilter);
+            }
+
+            return query;
+        }
+    }
+
+    private void SetActiveTab(string tabName)
+    {
+        activeTab = tabName;
+        StateHasChanged();
+    }
+
+    private string GetTabClass(string tabName)
+    {
+        bool isActive = activeTab == tabName;
+        string baseClasses = "px-4 py-3 font-medium text-sm rounded-t-md focus:outline-none transition duration-150 ease-in-out ";
+        string activeClasses = "border-b-2 border-indigo-500 text-indigo-600 bg-indigo-50";
+        string inactiveClasses = "border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300";
+        return baseClasses + (isActive ? activeClasses : inactiveClasses);
+    }
+
+     private string GetStatusBadgeClass(string status) => status switch
+    {
+        "Confirmed" => "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800",
+        "Cancelled" => "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800",
+        "Pending" => "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800",
+        _ => "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800",
+    };
+
+    private void ViewDetails(string bookingId)
+    {
+        Console.WriteLine($"View Details for Booking ID: {bookingId}");
+    }
+
+    private void RescheduleBooking(string bookingId)
+    {
+        Console.WriteLine($"Reschedule Booking ID: {bookingId}");
+        var booking = allBookings.FirstOrDefault(b => b.Id == bookingId);
+        if (booking != null && booking.Status != "Cancelled")
+        {
+        }
+    }
+
+    private void CancelBooking(string bookingId)
+    {
+        Console.WriteLine($"Cancel Booking ID: {bookingId}");
+        var booking = allBookings.FirstOrDefault(b => b.Id == bookingId);
+        if (booking != null && booking.Status != "Cancelled")
+        {
+            booking.Status = "Cancelled";
+            StateHasChanged();
+        }
+    }
+}

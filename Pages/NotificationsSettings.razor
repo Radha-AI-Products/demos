@@ -1,0 +1,101 @@
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Forms
+
+<div class="bg-white shadow-md rounded-lg p-4 sm:p-6">
+    <h2 class="text-xl font-semibold text-gray-700 mb-4">Notification Settings</h2>
+    <EditForm Model="@editingSettings" OnValidSubmit="HandleSave" FormName="NotificationsSettingsForm">
+        <DataAnnotationsValidator />
+
+        <fieldset class="space-y-4">
+            <legend class="sr-only">Notification Preferences</legend>
+
+            @* Email Alerts Section *@
+            <div class="border-b border-gray-200 pb-4">
+                 <h3 class="text-lg font-medium leading-6 text-gray-900">Email Alerts</h3>
+                 <p class="mt-1 text-sm text-gray-500">Receive email notifications for important updates.</p>
+            </div>
+
+            @* Booking Alerts *@
+            <div class="relative flex items-start">
+                <div class="flex items-center h-5">
+                    <InputCheckbox id="notifyBookings" @bind-Value="editingSettings.NotifyBookings" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded" />
+                </div>
+                <div class="ml-3 text-sm">
+                    <label for="notifyBookings" class="font-medium text-gray-700">Booking Confirmations</label>
+                    <p class="text-gray-500">Get notified when a booking is confirmed or updated.</p>
+                </div>
+            </div>
+
+            @* Itinerary Changes *@
+             <div class="relative flex items-start">
+                <div class="flex items-center h-5">
+                    <InputCheckbox id="notifyChanges" @bind-Value="editingSettings.NotifyChanges" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded" />
+                </div>
+                <div class="ml-3 text-sm">
+                    <label for="notifyChanges" class="font-medium text-gray-700">Itinerary Changes</label>
+                    <p class="text-gray-500">Receive alerts about changes to your travel plans.</p>
+                </div>
+            </div>
+
+            @* Travel Deals *@
+             <div class="relative flex items-start">
+                <div class="flex items-center h-5">
+                    <InputCheckbox id="notifyDeals" @bind-Value="editingSettings.NotifyDeals" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded" />
+                </div>
+                <div class="ml-3 text-sm">
+                    <label for="notifyDeals" class="font-medium text-gray-700">Travel Deals & Promotions</label>
+                    <p class="text-gray-500">Get emails about special offers and travel deals.</p>
+                </div>
+            </div>
+
+        </fieldset>
+
+        @* Action Buttons *@
+        <div class="mt-6 flex justify-end space-x-3">
+            <button type="button" @onclick="HandleCancel" class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                Cancel
+            </button>
+            <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" disabled="@isSaving">
+                 @if (isSaving)
+                {
+                    <i class="fas fa-spinner fa-spin mr-2"></i>
+                    <span>Saving...</span>
+                }
+                else
+                {
+                    <i class="fas fa-save mr-2"></i>
+                    <span>Save Changes</span>
+                }
+            </button>
+        </div>
+         <ValidationSummary class="mt-4 text-red-600" />
+    </EditForm>
+</div>
+
+@code {
+    [Parameter] public UserSettingsViewModel UserSettings { get; set; } = new();
+    [Parameter] public EventCallback<UserSettingsViewModel> OnSave { get; set; }
+
+    private UserSettingsViewModel editingSettings = new();
+    private bool isSaving = false;
+
+    protected override void OnParametersSet()
+    {
+        editingSettings = UserSettings.Clone();
+    }
+
+    private async Task HandleSave()
+    {
+        isSaving = true;
+        StateHasChanged();
+        await OnSave.InvokeAsync(editingSettings);
+        isSaving = false;
+        StateHasChanged();
+    }
+
+    private void HandleCancel()
+    {
+        editingSettings = UserSettings.Clone();
+        StateHasChanged();
+    }
+}
