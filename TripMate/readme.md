@@ -1,6 +1,6 @@
 # TripMate Demo: Build a Modern Travel App Front-End in Minutes with Blazor & InstructUI
 
-This demo showcases the source code used in the YouTube video "[Build an TripMate Front-End in Minutes Using Blazor & Instruct UI](https://www.youtube.com/watch?v=4EnZ0s9cAmo)". It highlights how quickly you can create a modern, responsive travel planning app UI using [InstructUI](https://instructui.com/), a Blazor-based UI development tool, styled with [Tailwind CSS](https://tailwindcss.com/).
+This demo showcases the source code used in the YouTube video "[Build an TripMate Front-End in Minutes Using Blazor & Instruct UI](https://www.youtube.com/watch?v=4EnZ0s9cAmo)". It highlights how quickly you can create a modern, responsive travel planning app UI using [InstructUI](https://instructui.com/), a conversation AI tool for Blazor UI development, styled with [Tailwind CSS](https://tailwindcss.com/).
 
 ## Prerequisites
 
