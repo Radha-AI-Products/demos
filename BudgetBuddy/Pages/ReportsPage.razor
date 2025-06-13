@@ -1,0 +1,158 @@
+@page "/reports"
+@using MudBlazor
+@using System.Linq
+
+<MudContainer MaxWidth="MaxWidth.False" Class="mt-4">
+    <MudGrid Justify="Justify.SpaceBetween" Class="mb-4">
+        <MudItem xs="12" sm="6">
+            <MudText Typo="Typo.h4">Reports</MudText>
+        </MudItem>
+        <MudItem xs="12" sm="6" Class="d-flex flex-wrap gap-4 justify-end">
+            <MudSelect T="string" Label="Date Range" @bind-Value="_selectedDateRange" Variant="Variant.Outlined" Dense="true" Class="report-filter">
+                @foreach (var range in _dateRanges)
+                {
+                    <MudSelectItem T="string" Value="@range">@range</MudSelectItem>
+                }
+            </MudSelect>
+            <MudSelect T="string" Label="Category" @bind-Value="_selectedCategory" Variant="Variant.Outlined" Dense="true" Class="report-filter">
+                @foreach (var category in _categories)
+                {
+                    <MudSelectItem T="string" Value="@category">@category</MudSelectItem>
+                }
+            </MudSelect>
+            <MudButton
+                Variant="Variant.Filled"
+                Color="Color.Primary"
+                StartIcon="@Icons.Material.Filled.Download"
+                OnClick="DownloadReport">
+                Download Report
+            </MudButton>
+        </MudItem>
+    </MudGrid>
+
+    <MudGrid Spacing="4">
+        <MudItem xs="12" md="6">
+            <MudPaper Elevation="2" Class="pa-4 rounded-lg" Height="400px">
+                <MudText Typo="Typo.h6" GutterBottom="true">Income vs. Expenses</MudText>
+                <MudChart ChartType="ChartType.Bar" ChartSeries="_incomeExpenseSeries" XAxisLabels="_incomeExpenseLabels" Width="100%" Height="300px" ChartOptions="_barChartOptions"></MudChart>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudPaper Elevation="2" Class="pa-4 rounded-lg" Height="400px">
+                <MudText Typo="Typo.h6" GutterBottom="true">Savings Breakdown</MudText>
+                <MudChart ChartType="ChartType.Donut" InputData="_savingsData" InputLabels="_savingsLabels" Width="100%" Height="300px" ChartOptions="_donutChartOptions"></MudChart>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12">
+            <MudPaper Elevation="2" Class="pa-4 rounded-lg" Height="400px">
+                <MudText Typo="Typo.h6" GutterBottom="true">Spending by Category</MudText>
+                <MudChart ChartType="ChartType.Bar" ChartSeries="_categorySpendingSeries" XAxisLabels="_categorySpendingLabels" Width="100%" Height="300px" ChartOptions="_barChartOptions"></MudChart>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    private string _selectedDateRange = "Monthly";
+    private string _selectedCategory = "All";
+
+    private List<string> _dateRanges = new List<string> { "Weekly", "Monthly", "Yearly" };
+    private List<string> _categories = new List<string> { "All", "Groceries", "Utilities", "Transport", "Entertainment" };
+
+    // Chart Data
+    private List<ChartSeries> _incomeExpenseSeries = new List<ChartSeries>();
+    private string[] _incomeExpenseLabels = { "Income", "Expenses" };
+
+    private double[] _savingsData = new double[0];
+    private string[] _savingsLabels = { "Saved", "Remaining" };
+
+    private List<ChartSeries> _categorySpendingSeries = new List<ChartSeries>();
+    private string[] _categorySpendingLabels = { "Groceries", "Utilities", "Transport", "Entertainment", "Other" };
+
+    // Chart Options
+    private readonly ChartOptions _barChartOptions = new ChartOptions
+    {
+        ShowLegend = false,
+        YAxisFormat = "c",
+        YAxisLines = true
+    };
+
+    private readonly ChartOptions _donutChartOptions = new ChartOptions
+    {
+        ShowLegend = true,
+        YAxisFormat = "c"
+    };
+
+    private string _selectedDateRangeField;
+    private string SelectedDateRange
+    {
+        get => _selectedDateRangeField;
+        set
+        {
+            _selectedDateRangeField = value;
+            UpdateReportData();
+        }
+    }
+
+    private string _selectedCategoryField;
+    private string SelectedCategory
+    {
+        get => _selectedCategoryField;
+        set
+        {
+            _selectedCategoryField = value;
+            UpdateReportData();
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        // Bind properties to trigger update on initial load
+        SelectedDateRange = _selectedDateRange;
+        SelectedCategory = _selectedCategory;
+    }
+
+    private void UpdateReportData()
+    {
+        var random = new Random();
+        
+        // Income vs Expense Chart
+        double totalIncome = random.Next(4000, 8000);
+        double totalExpenses = random.Next(2000, (int)totalIncome - 500);
+        
+        _incomeExpenseSeries = new List<ChartSeries>
+        {
+            new ChartSeries { Name = "Amount", Data = new double[] { totalIncome, totalExpenses } }
+        };
+
+        // Savings Breakdown Chart
+        double totalSavings = totalIncome - totalExpenses;
+        _savingsData = new double[] { totalSavings, totalExpenses };
+        _savingsLabels = new string[] { $"Saved: {totalSavings:C}", $"Spent: {totalExpenses:C}" };
+
+        // Category Spending Chart
+        var spendingData = new double[_categorySpendingLabels.Length];
+        double remainingExpenses = totalExpenses;
+        for (int i = 0; i < spendingData.Length - 1; i++)
+        {
+            double expense = random.Next(100, (int)(remainingExpenses * 0.5));
+            spendingData[i] = expense;
+            remainingExpenses -= expense;
+        }
+        spendingData[spendingData.Length - 1] = remainingExpenses > 0 ? remainingExpenses : 0;
+
+        _categorySpendingSeries = new List<ChartSeries>
+        {
+            new ChartSeries { Name = "Spending", Data = spendingData }
+        };
+
+        StateHasChanged();
+    }
+
+    private void DownloadReport()
+    {
+        // This is a placeholder for the download logic.
+        // In a real app, you would generate a file (e.g., PDF or CSV) and trigger a download.
+        Console.WriteLine("Download report requested.");
+    }
+}

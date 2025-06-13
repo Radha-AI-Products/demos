@@ -1,0 +1,40 @@
+# Build results
+bin/
+obj/
+wwwroot/css/app.css
+wwwroot/css/app.css.map
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider
+.idea/
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
+
+# Dependency directories
+node_modules/
+
+# ASP.NET secrets
+secrets.json
+
+# Dotnet environment files
+*.db
+.env
+.env.*
+
+# NuGet packages
+*.nupkg
+packages/
+.nuget/
+
+# OS generated
+.DS_Store
+Thumbs.db

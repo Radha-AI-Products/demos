@@ -1,0 +1,139 @@
+@page "/goals"
+@using System.ComponentModel.DataAnnotations
+@inject IDialogService DialogService
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    <MudPaper Elevation="0" Class="d-flex justify-space-between align-center pa-4 mb-4 rounded-lg">
+        <MudText Typo="Typo.h5">My Goals</MudText>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Add"
+                   OnClick="@(() => OpenGoalForm(null))">
+            New Goal
+        </MudButton>
+    </MudPaper>
+
+    @if (_goals.Any())
+    {
+        <MudGrid Spacing="3">
+            @foreach (var goal in _goals)
+            {
+                <MudItem xs="12" sm="6" md="4">
+                    <MudCard Outlined="true" Elevation="1" Class="rounded-lg" @onclick="@(() => OpenGoalForm(goal))" Style="cursor: pointer;">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">@goal.Name</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <div class="d-flex justify-space-between mb-2">
+                                <MudText Typo="Typo.body2">Saved: <strong>@goal.CurrentSavings.ToString("C")</strong></MudText>
+                                <MudText Typo="Typo.body2">Target: <strong>@goal.TargetAmount.ToString("C")</strong></MudText>
+                            </div>
+
+                            <MudProgressLinear Color="Color.Primary"
+                                               Value="@(goal.TargetAmount > 0 ? (double)(goal.CurrentSavings / goal.TargetAmount * 100) : 0)"
+                                               Rounded="true"
+                                               Size="Size.Large"
+                                               Class="my-2" />
+
+                            <MudText Typo="Typo.caption" Align="Align.Right">
+                                Deadline: @(goal.Deadline.HasValue ? goal.Deadline.Value.ToShortDateString() : "N/A")
+                            </MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+    else
+    {
+        <MudPaper Outlined="true" Class="pa-8 d-flex justify-center align-center rounded-lg">
+            <MudText Typo="Typo.h6">No goals yet. Add one to get started!</MudText>
+        </MudPaper>
+    }
+</MudContainer>
+
+@code {
+    private List<FinancialGoal> _goals = new();
+
+    protected override void OnInitialized()
+    {
+        // Sample data
+        _goals = new List<FinancialGoal>
+        {
+            new FinancialGoal
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = "New Car Fund",
+                TargetAmount = 25000,
+                CurrentSavings = 7500,
+                Deadline = new DateTime(2025, 12, 31),
+                UserId = "user1"
+            },
+            new FinancialGoal
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = "Vacation to Hawaii",
+                TargetAmount = 5000,
+                CurrentSavings = 4500,
+                Deadline = new DateTime(2024, 8, 15),
+                UserId = "user1"
+            },
+            new FinancialGoal
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = "Emergency Fund",
+                TargetAmount = 10000,
+                CurrentSavings = 10000,
+                Deadline = new DateTime(2024, 10, 1),
+                UserId = "user1"
+            }
+        };
+    }
+
+    private async Task OpenGoalForm(FinancialGoal? goal)
+    {
+        var isNewGoal = goal == null;
+        var title = isNewGoal ? "Create New Goal" : "Edit Goal";
+
+        var parameters = new DialogParameters<GoalForm>();
+        if (!isNewGoal)
+        {
+            // Pass a copy to the dialog to avoid modifying the original object until saved
+            parameters.Add(p => p.GoalModel, new FinancialGoal
+            {
+                Id = goal.Id,
+                Name = goal.Name,
+                TargetAmount = goal.TargetAmount,
+                CurrentSavings = goal.CurrentSavings,
+                Deadline = goal.Deadline,
+                UserId = goal.UserId
+            });
+        }
+
+        var dialog = await DialogService.ShowAsync<GoalForm>(title, parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is FinancialGoal savedGoal)
+        {
+            if (isNewGoal)
+            {
+                savedGoal.Id = Guid.NewGuid().ToString();
+                _goals.Add(savedGoal);
+            }
+            else
+            {
+                var existingGoal = _goals.FirstOrDefault(g => g.Id == savedGoal.Id);
+                if (existingGoal != null)
+                {
+                    existingGoal.Name = savedGoal.Name;
+                    existingGoal.TargetAmount = savedGoal.TargetAmount;
+                    existingGoal.CurrentSavings = savedGoal.CurrentSavings;
+                    existingGoal.Deadline = savedGoal.Deadline;
+                }
+            }
+            StateHasChanged();
+        }
+    }
+}

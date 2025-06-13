@@ -1,0 +1,253 @@
+@page "/settings"
+@using System.ComponentModel.DataAnnotations
+@inject ISnackbar Snackbar
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
+    <MudText Typo="Typo.h4" GutterBottom="true">Settings</MudText>
+
+    <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+        <MudTabPanel Text="Profile" Icon="@Icons.Material.Filled.Person">
+            <MudForm @ref="_profileForm" Model="@_profile">
+                <MudCard Elevation="0">
+                    <MudCardContent>
+                        <MudGrid Spacing="4">
+                            <MudItem xs="12" sm="4" Class="d-flex flex-column align-center justify-center">
+                                <MudAvatar Style=@($"height:150px; width:150px; font-size: 2rem; background-image: url('{_profile.ProfilePictureUrl}'); background-size: cover; background-position: center;")>
+                                    @if (string.IsNullOrEmpty(_profile.ProfilePictureUrl))
+                                    {
+                                        @_profile.Name?.FirstOrDefault()
+                                    }
+                                </MudAvatar>
+                                <MudFileUpload T="IBrowserFile" Class="mt-4" OnFilesChanged="OnProfilePictureChanged" Hidden="_isUploading" Accept=".png, .jpg, .jpeg">
+                                    <ActivatorContent>
+                                        <MudButton HtmlTag="label"
+                                                   Variant="Variant.Text"
+                                                   Color="Color.Primary"
+                                                   StartIcon="@Icons.Material.Filled.CloudUpload">
+                                            Upload Photo
+                                            <input type="file" hidden />
+                                        </MudButton>
+                                    </ActivatorContent>
+                                </MudFileUpload>
+                            </MudItem>
+                            <MudItem xs="12" sm="8">
+                                <MudTextField @bind-Value="_profile.Name"
+                                              Label="Full Name"
+                                              Variant="Variant.Outlined"
+                                              For="@(() => _profile.Name)"
+                                              Required="true"
+                                              RequiredError="Full Name is required." />
+                                <MudTextField @bind-Value="_profile.Email"
+                                              Label="Email Address"
+                                              Variant="Variant.Outlined"
+                                              Class="mt-4"
+                                              For="@(() => _profile.Email)"
+                                              Required="true"
+                                              InputType="InputType.Email"
+                                              RequiredError="Email is required." />
+                            </MudItem>
+                        </MudGrid>
+                    </MudCardContent>
+                    <MudCardActions Class="px-4 pb-4">
+                        <MudSpacer />
+                        <MudButton OnClick="CancelProfileChanges">Cancel</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveProfileChanges">Save Changes</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudForm>
+        </MudTabPanel>
+
+        <MudTabPanel Text="Preferences" Icon="@Icons.Material.Filled.Tune">
+            <MudForm @ref="_preferencesForm" Model="@_settings">
+                <MudCard Elevation="0">
+                    <MudCardContent>
+                        <MudGrid>
+                            <MudItem xs="12" md="6">
+                                <MudSelect T="string" @bind-Value="_settings.DefaultCurrency" Label="Preferred Currency" Variant="Variant.Outlined">
+                                    @foreach (var currency in _currencies)
+                                    {
+                                        <MudSelectItem Value="@currency">@currency</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudSelect T="string" @bind-Value="_settings.TimeZone" Label="Time Zone" Variant="Variant.Outlined">
+                                    @foreach (var tz in _timeZones)
+                                    {
+                                        <MudSelectItem Value="@tz">@tz</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
+                            <MudItem xs="12">
+                                <MudSelect T="string" @bind-SelectedValues="_settings.PreferredCategories" Label="Default Budget Categories" Variant="Variant.Outlined" MultiSelection="true">
+                                    @foreach (var cat in _allCategories)
+                                    {
+                                        <MudSelectItem Value="@cat">@cat</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
+                        </MudGrid>
+                    </MudCardContent>
+                    <MudCardActions Class="px-4 pb-4">
+                        <MudSpacer />
+                        <MudButton OnClick="CancelPreferenceChanges">Cancel</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SavePreferenceChanges">Save Changes</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudForm>
+        </MudTabPanel>
+
+        <MudTabPanel Text="Notifications" Icon="@Icons.Material.Filled.Notifications">
+            <MudForm @ref="_notificationsForm" Model="@_settings">
+                <MudCard Elevation="0">
+                    <MudCardContent>
+                        <MudText Typo="Typo.body1" GutterBottom="true">Manage your email alerts to stay on top of your finances.</MudText>
+                        <MudSwitch @bind-Value="_settings.NotifyOverspending" Color="Color.Primary" Label="Email alerts for overspending" />
+                        <MudSwitch @bind-Value="_settings.NotifyMilestones" Color="Color.Primary" Label="Email alerts for goal milestones" />
+                        <MudSwitch @bind-Value="_settings.NotifyNewTransactions" Color="Color.Primary" Label="Email alerts for new transactions" />
+                    </MudCardContent>
+                    <MudCardActions Class="px-4 pb-4">
+                        <MudSpacer />
+                        <MudButton OnClick="CancelNotificationChanges">Cancel</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveNotificationChanges">Save Changes</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudForm>
+        </MudTabPanel>
+    </MudTabs>
+</MudContainer>
+
+@code {
+    private MudForm _profileForm = new();
+    private MudForm _preferencesForm = new();
+    private MudForm _notificationsForm = new();
+
+    private UserProfileModel _profile = new();
+    private UserSettingsViewModel _settings = new();
+
+    private UserProfileModel _originalProfile = new();
+    private UserSettingsViewModel _originalSettings = new();
+
+    private bool _isUploading = false;
+
+    private readonly string[] _currencies = { "USD - United States Dollar", "EUR - Euro", "GBP - British Pound", "JPY - Japanese Yen" };
+    private readonly string[] _timeZones = { "(GMT-05:00) Eastern Time", "(GMT-06:00) Central Time", "(GMT-07:00) Mountain Time", "(GMT-08:00) Pacific Time" };
+    private readonly string[] _allCategories = { "Groceries", "Utilities", "Rent", "Transportation", "Entertainment", "Healthcare", "Dining Out", "Shopping" };
+
+    protected override void OnInitialized()
+    {
+        // Mock initial data loading
+        _profile = new UserProfileModel
+        {
+            Id = "user123",
+            Name = "Alex Doe",
+            Email = "alex.doe@email.com",
+            ProfilePictureUrl = "https://placehold.co/150x150?text=AD"
+        };
+
+        _settings = new UserSettingsViewModel
+        {
+            Id = "settings123",
+            UserId = "user123",
+            DefaultCurrency = "USD - United States Dollar",
+            TimeZone = "(GMT-05:00) Eastern Time",
+            PreferredCategories = new[] { "Groceries", "Rent" },
+            NotifyOverspending = true,
+            NotifyMilestones = true,
+            NotifyNewTransactions = false
+        };
+
+        // Store original state for cancellation
+        StoreOriginalState();
+    }
+
+    private void StoreOriginalState()
+    {
+        _originalProfile = (UserProfileModel)_profile.Clone();
+        _originalSettings = (UserSettingsViewModel)_settings.Clone();
+    }
+
+    private async void OnProfilePictureChanged(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        await UploadProfilePicture(file);
+    }
+
+    private async Task UploadProfilePicture(IBrowserFile file)
+    {
+        if (file == null) return;
+
+        _isUploading = true;
+        // In a real app, you would upload the file to a server and get back a URL.
+        // Here, we'll just use a placeholder and simulate a delay.
+        await Task.Delay(1500);
+        _profile.ProfilePictureUrl = $"https://placehold.co/150x150?text={_profile.Name?.FirstOrDefault()}";
+        _isUploading = false;
+        StateHasChanged();
+        Snackbar.Add("Profile picture updated!", Severity.Success);
+    }
+
+    private async Task<IEnumerable<string>> SearchCategories(string value)
+    {
+        // In a real app, you might make a call to the server to search categories.
+        await Task.Delay(5);
+        if (string.IsNullOrEmpty(value))
+            return _allCategories;
+        return _allCategories.Where(c => c.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    private async void SaveProfileChanges()
+    {
+        await _profileForm.Validate();
+        if (_profileForm.IsValid)
+        {
+            // In a real app, save _profile to the database
+            StoreOriginalState();
+            Snackbar.Add("Profile saved successfully!", Severity.Success);
+        }
+    }
+
+    private void CancelProfileChanges()
+    {
+        _profile = (UserProfileModel)_originalProfile.Clone();
+        Snackbar.Add("Changes discarded.", Severity.Info);
+    }
+
+    private async void SavePreferenceChanges()
+    {
+        await _preferencesForm.Validate();
+        if (_preferencesForm.IsValid)
+        {
+            // In a real app, save _settings to the database
+            StoreOriginalState();
+            Snackbar.Add("Preferences saved successfully!", Severity.Success);
+        }
+    }
+
+    private void CancelPreferenceChanges()
+    {
+        _settings.DefaultCurrency = _originalSettings.DefaultCurrency;
+        _settings.TimeZone = _originalSettings.TimeZone;
+        _settings.PreferredCategories = _originalSettings.PreferredCategories;
+        Snackbar.Add("Changes discarded.", Severity.Info);
+    }
+
+    private async void SaveNotificationChanges()
+    {
+        await _notificationsForm.Validate();
+        if (_notificationsForm.IsValid)
+        {
+            // In a real app, save _settings to the database
+            StoreOriginalState();
+            Snackbar.Add("Notifications saved successfully!", Severity.Success);
+        }
+    }
+
+    private void CancelNotificationChanges()
+    {
+        _settings.NotifyOverspending = _originalSettings.NotifyOverspending;
+        _settings.NotifyMilestones = _originalSettings.NotifyMilestones;
+        _settings.NotifyNewTransactions = _originalSettings.NotifyNewTransactions;
+        Snackbar.Add("Changes discarded.", Severity.Info);
+    }
+}

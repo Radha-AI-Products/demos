@@ -1,0 +1,110 @@
+@page "/"
+@using MudBlazor
+@inject IDialogService DialogService
+@inject NavigationManager NavManager
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    @* Main Header *@
+    <MudGrid Justify="Justify.SpaceBetween" Class="mb-6">
+        <MudItem>
+            <MudText Typo="Typo.h4" GutterBottom="true"><b>Dashboard</b></MudText>
+            <MudText Typo="Typo.subtitle1" Color="Color.Dark" Class="mud-text-secondary">Welcome back, here's your financial overview.</MudText>
+        </MudItem>
+        <MudItem>
+            <MudButton Variant="Variant.Filled" 
+                       Color="Color.Primary" 
+                       StartIcon="@Icons.Material.Filled.Add"
+                       OnClick="OpenNewTransactionDialog"
+                       Size="Size.Large"
+                       Class="d-none d-sm-flex">
+                New Transaction
+            </MudButton>
+            <MudIconButton Icon="@Icons.Material.Filled.Add"
+                           Color="Color.Primary"
+                           Variant="Variant.Filled"
+                           OnClick="OpenNewTransactionDialog"
+                           Class="d-flex d-sm-none" />
+        </MudItem>
+    </MudGrid>
+
+    @* Financial Overview Cards *@
+    <MudGrid Spacing="4">
+        @if (overviewData == null)
+        {
+            @foreach (var i in Enumerable.Range(1, 3))
+            {
+                <MudItem xs="12" sm="6" md="4">
+                    <MudPaper Outlined="true" Class="pa-4 rounded-lg">
+                        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="150px" />
+                    </MudPaper>
+                </MudItem>
+            }
+        }
+        else
+        {
+            @foreach (var item in overviewData)
+            {
+                <MudItem xs="12" sm="6" md="4">
+                    <MudCard Outlined="true" Elevation="0" Class="rounded-lg">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">@item.Category</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudText Typo="Typo.h4" GutterBottom="true"><b>@item.Amount.ToString("C")</b></MudText>
+                            <MudChip T="object" Icon="@(item.PercentageChange >= 0 ? Icons.Material.Filled.ArrowUpward : Icons.Material.Filled.ArrowDownward)"
+                                     Color="@(item.PercentageChange >= 0 ? Color.Success : Color.Error)"
+                                     Variant="Variant.Text"
+                                     Label="true">
+                                @item.PercentageChange.ToString("F2")% vs last month
+                            </MudChip>
+                        </MudCardContent>
+                        <MudCardActions Class="px-4 pb-4">
+                            <MudButton Variant="Variant.Text" 
+                                       Color="Color.Primary" 
+                                       OnClick="@(() => NavigateToDetails(item.Category))">
+                                View Details
+                            </MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            }
+        }
+    </MudGrid>
+</MudContainer>
+
+@code {
+    private List<BudgetOverviewModel>? overviewData;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Simulate network delay
+        await Task.Delay(500);
+
+        overviewData = new List<BudgetOverviewModel>
+        {
+            new BudgetOverviewModel { Id = "1", Category = "Income", Amount = 4200.50m, PercentageChange = 5.2m, UserId = "user1" },
+            new BudgetOverviewModel { Id = "2", Category = "Expenses", Amount = 1850.75m, PercentageChange = -2.1m, UserId = "user1" },
+            new BudgetOverviewModel { Id = "3", Category = "Savings", Amount = 850.00m, PercentageChange = 15.0m, UserId = "user1" }
+        };
+    }
+
+    private async Task OpenNewTransactionDialog()
+    {
+        var dialog = DialogService.Show<NewTransactionDialog>("Add New Transaction");
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            // In a real app, you would refresh the data here.
+            // For this demo, we can just show a snackbar.
+            // Snackbar.Add("Transaction added!", Severity.Success);
+        }
+    }
+
+    private void NavigateToDetails(string category)
+    {
+        NavManager.NavigateTo($"/transactions/{category.ToLower()}");
+    }
+}

@@ -1,0 +1,127 @@
+@page "/budgets"
+@using System.ComponentModel.DataAnnotations
+@inject IDialogService DialogService
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+        <MudText Typo="Typo.h4">Budgets</MudText>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Add"
+                   OnClick="OpenCreateBudgetDialog">
+            New Budget
+        </MudButton>
+    </MudStack>
+
+    <MudGrid Spacing="3">
+        @foreach (var budget in _budgets)
+        {
+            var currentBudget = budget;
+            <MudItem xs="12" sm="6" md="4">
+                <MudCard Outlined="true" Elevation="1" Class="rounded-lg budget-card" @onclick="@(() => OpenEditBudgetDialog(currentBudget))">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">@currentBudget.Name</MudText>
+                        </CardHeaderContent>
+                        <CardHeaderActions>
+                            <MudMenu Icon="@Icons.Material.Filled.MoreVert" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                                <MudMenuItem OnClick="@(() => OpenEditBudgetDialog(currentBudget))">Edit</MudMenuItem>
+                                <MudMenuItem OnClick="@(() => DuplicateBudget(currentBudget))">Duplicate</MudMenuItem>
+                                <MudMenuItem OnClick="@(() => DeleteBudget(currentBudget))">Delete</MudMenuItem>
+                            </MudMenu>
+                        </CardHeaderActions>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText Typo="Typo.body2" GutterBottom="true">Spending</MudText>
+                        <MudProgressLinear Color="@GetProgressColor(currentBudget)" Value="@CalculateSpendingPercentage(currentBudget)" Class="mb-2" />
+                        <MudStack Row="true" Justify="Justify.SpaceBetween">
+                            <MudText Typo="Typo.caption">@($"Spent: {currentBudget.CurrentSpending:C}")</MudText>
+                            <MudText Typo="Typo.caption">@($"Remaining: {currentBudget.RemainingAmount:C}")</MudText>
+                        </MudStack>
+                        <MudText Typo="Typo.body2" Class="mt-3">Allocated: <b>@currentBudget.AllocatedAmount:C</b></MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+</MudContainer>
+
+@code {
+    private List<BudgetModel> _budgets = new();
+
+    protected override void OnInitialized()
+    {
+        _budgets = new List<BudgetModel>
+        {
+            new BudgetModel { Id = Guid.NewGuid().ToString(), Name = "Groceries", AllocatedAmount = 500, CurrentSpending = 250 },
+            new BudgetModel { Id = Guid.NewGuid().ToString(), Name = "Utilities", AllocatedAmount = 200, CurrentSpending = 180 },
+            new BudgetModel { Id = Guid.NewGuid().ToString(), Name = "Entertainment", AllocatedAmount = 150, CurrentSpending = 50 },
+            new BudgetModel { Id = Guid.NewGuid().ToString(), Name = "Transport", AllocatedAmount = 100, CurrentSpending = 95 },
+            new BudgetModel { Id = Guid.NewGuid().ToString(), Name = "Health", AllocatedAmount = 300, CurrentSpending = 310 }
+        };
+    }
+
+    private async Task OpenCreateBudgetDialog()
+    {
+        var dialog = DialogService.Show<BudgetDialog>("Create New Budget");
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is BudgetModel newBudget)
+        {
+            newBudget.Id = Guid.NewGuid().ToString();
+            _budgets.Add(newBudget);
+            StateHasChanged();
+        }
+    }
+
+    private async Task OpenEditBudgetDialog(BudgetModel budgetToEdit)
+    {
+        var parameters = new DialogParameters<BudgetDialog> { { x => x.Budget, budgetToEdit } };
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var dialog = await DialogService.ShowAsync<BudgetDialog>("Edit Budget", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is BudgetModel updatedBudget)
+        {
+            var index = _budgets.FindIndex(b => b.Id == updatedBudget.Id);
+            if (index != -1)
+            {
+                _budgets[index] = updatedBudget;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private void DeleteBudget(BudgetModel budgetToDelete)
+    {
+        _budgets.Remove(budgetToDelete);
+        StateHasChanged();
+    }
+
+    private void DuplicateBudget(BudgetModel budgetToDuplicate)
+    {
+        var newBudget = new BudgetModel
+        {
+            Id = Guid.NewGuid().ToString(),
+            Name = $"{budgetToDuplicate.Name} (Copy)",
+            AllocatedAmount = budgetToDuplicate.AllocatedAmount,
+            CurrentSpending = 0 // Reset spending for the new budget
+        };
+        _budgets.Add(newBudget);
+        StateHasChanged();
+    }
+
+    private double CalculateSpendingPercentage(BudgetModel budget)
+    {
+        if (budget.AllocatedAmount == 0) return 0;
+        return (double)(budget.CurrentSpending / budget.AllocatedAmount * 100);
+    }
+
+    private Color GetProgressColor(BudgetModel budget)
+    {
+        var percentage = CalculateSpendingPercentage(budget);
+        if (percentage > 100) return Color.Error;
+        if (percentage > 85) return Color.Warning;
+        return Color.Primary;
+    }
+}

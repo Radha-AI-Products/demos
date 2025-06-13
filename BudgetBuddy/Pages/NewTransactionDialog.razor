@@ -1,0 +1,44 @@
+@using MudBlazor
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="form">
+            <MudGrid Spacing="2">
+                <MudItem xs="12">
+                    <MudSelect T="string" Label="Type" AnchorOrigin="Origin.BottomCenter" Required="true">
+                        <MudSelectItem Value="@("Income")" />
+                        <MudSelectItem Value="@("Expense")" />
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField T="string" Label="Description" Required="true" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudNumericField T="decimal" Label="Amount" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AttachMoney" />
+                </MudItem>
+                 <MudItem xs="12">
+                    <MudDatePicker Label="Transaction Date" Required="true" />
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit">Save Transaction</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    IMudDialogInstance MudDialog { get; set; }
+
+    MudForm form;
+
+    private void Submit()
+    {
+        // In a real app, you would process the form data here.
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    void Cancel() => MudDialog.Cancel();
+}

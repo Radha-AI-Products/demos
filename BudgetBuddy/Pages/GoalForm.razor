@@ -1,0 +1,73 @@
+@using System.ComponentModel.DataAnnotations
+@using MudBlazor
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" Model="@GoalModel" @bind-IsValid="@_success">
+            <MudGrid Spacing="2">
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="GoalModel.Name"
+                                  For="@(() => GoalModel.Name)"
+                                  Label="Goal Name"
+                                  Variant="Variant.Outlined"
+                                  Required="true"
+                                  RequiredError="Goal name is required." />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField @bind-Value="GoalModel.TargetAmount"
+                                     For="@(() => GoalModel.TargetAmount)"
+                                     Label="Target Amount"
+                                     Variant="Variant.Outlined"
+                                     Required="true"
+                                     Min="0.01m"
+                                     Adornment="Adornment.Start"
+                                     AdornmentIcon="@Icons.Material.Filled.AttachMoney" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField @bind-Value="GoalModel.CurrentSavings"
+                                     For="@(() => GoalModel.CurrentSavings)"
+                                     Label="Current Savings"
+                                     Variant="Variant.Outlined"
+                                     Required="true"
+                                     Min="0m"
+                                     Adornment="Adornment.Start"
+                                     AdornmentIcon="@Icons.Material.Filled.Savings" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudDatePicker @bind-Date="GoalModel.Deadline"
+                                   For="@(() => GoalModel.Deadline)"
+                                   Label="Deadline"
+                                   Variant="Variant.Outlined"
+                                   Required="true"
+                                   MinDate="@(DateTime.Now.Date)" />
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Save" Disabled="@(!_success)">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    public IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter]
+    public FinancialGoal GoalModel { get; set; } = new() { Deadline = DateTime.Now.AddMonths(6) };
+
+    private MudForm _form = default!;
+    private bool _success;
+
+    private void Save()
+    {
+        _form.Validate();
+        if (_success)
+        {
+            MudDialog.Close(DialogResult.Ok(GoalModel));
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

@@ -1,0 +1,139 @@
+@page "/transactions"
+@using System.Globalization
+
+<MudContainer MaxWidth="MaxWidth.False" Class="mt-4">
+    <MudText Typo="Typo.h4" GutterBottom="true">Transactions</MudText>
+
+    @* -- Filter Section -- *@
+    <MudPaper Class="pa-4 mb-6" Elevation="1">
+        <MudGrid Spacing="4">
+            <MudItem xs="12" sm="6" md="4">
+                <MudDateRangePicker
+                    @bind-DateRange="_dateRange"
+                    Label="Filter by Date"
+                    PickerVariant="PickerVariant.Dialog"
+                    Clearable="true" />
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+                <MudSelect T="string" @bind-Value="_selectedCategory" Label="Filter by Category" Clearable="true">
+                    @foreach (var category in _categories)
+                    {
+                        <MudSelectItem Value="@category">@category</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" md="4" Class="d-flex align-center">
+                <MudSpacer />
+                <MudButton Variant="Variant.Text" OnClick="ClearFilters">Clear Filters</MudButton>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    @* -- Transactions Table -- *@
+    <MudTable Items="@_filteredTransactions" Hover="true" Outlined="true" Class="rounded-lg">
+        <HeaderContent>
+            <MudTh>Date</MudTh>
+            <MudTh>Description</MudTh>
+            <MudTh>Amount</MudTh>
+            <MudTh>Category</MudTh>
+            <MudTh>Status</MudTh>
+            <MudTh Style="text-align:center">Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Date">@context.Date.ToShortDateString()</MudTd>
+            <MudTd DataLabel="Description">@context.Description</MudTd>
+            <MudTd DataLabel="Amount">@context.Amount.ToString("C", new CultureInfo("en-US"))</MudTd>
+            <MudTd DataLabel="Category">@context.Category</MudTd>
+            <MudTd DataLabel="Status">
+                <MudChip T="string" Label="true" Color="@GetStatusColor(context.Status)" Size="Size.Small">@context.Status</MudChip>
+            </MudTd>
+            <MudTd DataLabel="Actions" Style="text-align:center">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" aria-label="edit transaction" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" aria-label="delete transaction" />
+                <MudLink Href="#" Typo="Typo.body2" Class="ml-2">View Details</MudLink>
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+        <NoRecordsContent>
+            <MudText>No matching transactions found.</MudText>
+        </NoRecordsContent>
+    </MudTable>
+
+</MudContainer>
+
+@code {
+    private List<TransactionModel> _transactions = new();
+    private IEnumerable<TransactionModel> _filteredTransactions = new List<TransactionModel>();
+    private readonly List<string> _categories = new() { "Income", "Food", "Transport", "Utilities", "Entertainment" };
+
+    private DateRange? _dateRange;
+    private string? _selectedCategory;
+
+    protected override void OnInitialized()
+    {
+        _transactions = new List<TransactionModel>
+        {
+            new() { Id = "1", Date = DateTime.Now.AddDays(-1), Description = "Grocery Shopping", Amount = -75.50m, Category = "Food", Status = "Completed", UserId = "user1" },
+            new() { Id = "2", Date = DateTime.Now.AddDays(-2), Description = "Monthly Salary", Amount = 3000.00m, Category = "Income", Status = "Completed", UserId = "user1" },
+            new() { Id = "3", Date = DateTime.Now.AddDays(-3), Description = "Gas Bill", Amount = -55.00m, Category = "Utilities", Status = "Completed", UserId = "user1" },
+            new() { Id = "4", Date = DateTime.Now.AddDays(-4), Description = "Train Ticket", Amount = -12.75m, Category = "Transport", Status = "Completed", UserId = "user1" },
+            new() { Id = "5", Date = DateTime.Now.AddDays(-5), Description = "Movie Night", Amount = -40.00m, Category = "Entertainment", Status = "Completed", UserId = "user1" },
+            new() { Id = "6", Date = DateTime.Now, Description = "Online Order", Amount = -120.00m, Category = "Food", Status = "Pending", UserId = "user1" },
+            new() { Id = "7", Date = DateTime.Now.AddDays(-10), Description = "Concert Tickets", Amount = -150.00m, Category = "Entertainment", Status = "Cancelled", UserId = "user1" },
+            new() { Id = "8", Date = DateTime.Now.AddDays(-15), Description = "Freelance Payment", Amount = 500.00m, Category = "Income", Status = "Completed", UserId = "user1" },
+        };
+        ApplyFilters();
+    }
+
+    private DateRange? DateRange
+    {
+        get => _dateRange;
+        set
+        {
+            _dateRange = value;
+            ApplyFilters();
+        }
+    }
+
+    private string? SelectedCategory
+    {
+        get => _selectedCategory;
+        set
+        {
+            _selectedCategory = value;
+            ApplyFilters();
+        }
+    }
+
+    private void ClearFilters()
+    {
+        _dateRange = null;
+        _selectedCategory = null;
+        ApplyFilters();
+    }
+
+    private void ApplyFilters()
+    {
+        _filteredTransactions = _transactions.Where(t =>
+        {
+            // Date Range Filter
+            var isAfterStartDate = !_dateRange?.Start.HasValue ?? true || t.Date.Date >= _dateRange.Start.Value.Date;
+            var isBeforeEndDate = !_dateRange?.End.HasValue ?? true || t.Date.Date <= _dateRange.End.Value.Date;
+
+            // Category Filter
+            var hasCategory = string.IsNullOrWhiteSpace(_selectedCategory) || t.Category == _selectedCategory;
+
+            return isAfterStartDate && isBeforeEndDate && hasCategory;
+        });
+    }
+
+    private Color GetStatusColor(string status) => status switch
+    {
+        "Completed" => Color.Success,
+        "Pending" => Color.Warning,
+        "Cancelled" => Color.Error,
+        _ => Color.Default
+    };
+}
