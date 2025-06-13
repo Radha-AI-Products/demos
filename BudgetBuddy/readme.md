@@ -1,6 +1,6 @@
 # BudgetBuddy Demo: Build a Modern Budget App Front-End in Minutes with Blazor & Instruct UI
 
-This demo showcases the source code used in the YouTube video "[Build an BudgetBuddy Front-End in Minutes Using Blazor & Instruct UI](https://youtu.be/EfuOXulAIjI)". It highlights how quickly you can create a modern, responsive Budget Maintaining app UI using [Instruct UI](https://instructui.com/), a conversation AI tool for Blazor UI development, styled with [Mudblazor](https://www.mudblazor.com/).
+This demo showcases the source code used in the YouTube video "[Build an BudgetBuddy Front-End in Minutes Using Blazor & Instruct UI](https://youtu.be/EfuOXulAIjI)". It highlights how quickly you can create a modern, responsive real world application like  Budget Maintaining app frontend using [Instruct UI](https://instructui.com/), a conversation AI tool for Blazor UI development, styled with [Mudblazor](https://www.mudblazor.com/).
 
 ## Prerequisites
 
@@ -30,5 +30,5 @@ Follow these steps to build and run the BudgetBuddy demo application, as demonst
 
 4.  **Explore the BudgetBuddy UI:** You can now interact with the BudgetBuddy demo, showcasing Blazor components built with Instruct UI and styled with MudBlazor, just as shown in the YouTube video.
 
-5.  **Conclusion:** Now that you have the BudgetBuddy demo set up, you can explore and modify the application as needed. Feel free to make changes, experiment, and build your own travel planning app using Blazor and InstructUI.
+5.  **Conclusion:** Now that you have the BudgetBuddy demo set up, you can explore and modify the application as needed. Feel free to make changes, experiment, and build your own budget planning app using Blazor and      InstructUI.
 6.  For more information on  InstuctUI visit: [Instruct UI](https://instructui.com/)
