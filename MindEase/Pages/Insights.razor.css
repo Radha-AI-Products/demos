@@ -1,0 +1,10 @@
+.insight-card { border-radius: 12px; box-shadow: 0 6px 18px rgba(31,41,55,0.04); }
+.stat-card { border-radius: 10px; background: #ffffff; box-shadow: 0 4px 12px rgba(31,41,55,0.04); }
+.weekly-card { border-radius: 12px; background: #f8fff7; border: 1px solid rgba(34,197,94,0.08); }
+
+/* spacing tweaks */
+.insight-card + .insight-card { margin-top: 12px; }
+.stat-card .mud-avatar { flex-shrink: 0; }
+
+/* typography */
+:host { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }

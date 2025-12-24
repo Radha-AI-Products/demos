@@ -1,0 +1,71 @@
+@page "/insights"
+@using MudBlazor
+@using System.Collections.Generic
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="pa-6">
+    <MudText Typo="Typo.h4">Insights</MudText>
+    <MudText Typo="Typo.subtitle1" Class="mb-4">Personalized observations to help you notice patterns and celebrate small wins.</MudText>
+
+    <MudStack Spacing="3">
+        @foreach (var insight in insights)
+        {
+            <MudCard Class="insight-card pa-3">
+                <MudCardHeader>
+                    <CardHeaderAvatar>
+                        <MudAvatar Color="Color.Primary" Size="Size.Medium">
+                            <MudIcon Icon="@insight.Icon" />
+                        </MudAvatar>
+                    </CardHeaderAvatar>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.subtitle1">@insight.Title</MudText>
+                        <MudText Typo="Typo.body2">@insight.Description</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+            </MudCard>
+        }
+    </MudStack>
+
+    <MudText Typo="Typo.h6" Class="mt-6">Your Patterns</MudText>
+    <MudGrid Spacing="3" Class="mt-2">
+        @foreach (var stat in stats)
+        {
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="stat-card pa-3 d-flex align-center">
+                    <MudAvatar Color="Color.Secondary" Size="Size.Medium">
+                        <MudIcon Icon="@stat.Icon" />
+                    </MudAvatar>
+                    <div class="ml-3">
+                        <MudText Typo="Typo.subtitle2">@stat.Label</MudText>
+                        <MudText Typo="Typo.h6">@stat.Value</MudText>
+                    </div>
+                </MudPaper>
+            </MudItem>
+        }
+        <MudItem xs="12" md="6">
+            <MudCard Class="weekly-card pa-4">
+                <MudText Typo="Typo.h6">Weekly Summary</MudText>
+                <MudText Typo="Typo.body2" Class="mb-3">You showed gentle consistency this week — small steps add up. Keep noticing the moments that helped you feel steady.</MudText>
+                <MudSpacer />
+                <MudButton Variant="Variant.Filled" Color="Color.Primary">Reflect</MudButton>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+
+</MudContainer>
+
+@code {
+    private List<InsightModel> insights = new List<InsightModel>
+    {
+        new InsightModel { Icon = Icons.Material.Filled.Lightbulb, Title = "Evening calm increases", Description = "You often feel calmer in the evening; a short wind-down may help amplify this." },
+        new InsightModel { Icon = Icons.Material.Filled.SelfImprovement, Title = "Breathing helps", Description = "Short breathing exercises correspond with slight mood lifts on busy days." },
+        new InsightModel { Icon = Icons.Material.Filled.People, Title = "Social check-ins matter", Description = "Days with brief social contact tend to feel more positive." }
+    };
+
+    private List<StatModel> stats = new List<StatModel>
+    {
+        new StatModel { Icon = Icons.Material.Filled.Star, Label = "Most positive day", Value = "Thursday" },
+        new StatModel { Icon = Icons.Material.Filled.InsertEmoticon, Label = "Average mood", Value = "3.8 / 5" },
+        new StatModel { Icon = Icons.Material.Filled.Whatshot, Label = "Check-in streak", Value = "5 days" },
+        new StatModel { Icon = Icons.Material.Filled.Spa, Label = "Weekly sessions", Value = "3" }
+    };
+}

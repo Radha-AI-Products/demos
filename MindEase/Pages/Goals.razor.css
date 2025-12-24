@@ -1,0 +1,16 @@
+.goals-highlight-card {
+    border-radius: 16px;
+    padding: 8px;
+}
+
+.goal-card {
+    border-radius: 12px;
+}
+
+.suggested-goal-card {
+    border-radius: 12px;
+}
+
+.suggested-goals-grid {
+    margin-bottom: 16px;
+}

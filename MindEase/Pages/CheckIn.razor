@@ -1,0 +1,62 @@
+@page "/"
+@page "/check-in"
+@using MudBlazor
+
+<div class="d-flex justify-center">
+    <MudContainer MaxWidth="MaxWidth.Large" Class="mt-8 px-4">
+        <MudCard Class="checkin-card" Elevation="6">
+            <MudCardContent>
+                <div class="d-flex flex-column">
+                    <MudText Typo="Typo.subtitle1" Class="mb-1">Good morning</MudText>
+                    <MudText Typo="Typo.h4" Class="mb-2">How are you feeling today?</MudText>
+                    <MudText Typo="Typo.body2" Class="mb-4">Choose the mood that best matches how you feel. This check-in is private and for your own reflection.</MudText>
+                </div>
+
+                <div class="d-flex flex-row flex-wrap justify-center gap-3 mood-list">
+                    @foreach (var m in moods)
+                    {
+                        <MudPaper Class="@($"mood-card {(selectedMood?.Id == m.Id ? "selected" : "")}")" Elevation="0" Style="cursor:pointer; min-width:110px; max-width:140px;" @onclick="() => SelectMood(m)" role="button" aria-label="@($"Select {m.Label}")">
+                            <div class="d-flex flex-column align-center pa-3">
+                                <MudText Typo="Typo.h4">@m.Emoji</MudText>
+                                <MudText Typo="Typo.subtitle2" Class="mt-1">@m.Label</MudText>
+                            </div>
+                        </MudPaper>
+                    }
+                </div>
+
+                <div class="mt-4">
+                    <MudTextField T="string" Label="Optional note" Variant="Variant.Outlined" Lines="4" @bind-Text="note" Class="note-field" HelperText="Write a short note about your day (optional)" />
+                </div>
+            </MudCardContent>
+
+            <MudCardActions Class="d-flex justify-end">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveCheckin">Save Check-in</MudButton>
+            </MudCardActions>
+        </MudCard>
+    </MudContainer>
+</div>
+
+@code {
+    private List<MoodModel> moods = new()
+    {
+        new("great", "Great", "😊"),
+        new("good", "Good", "🙂"),
+        new("okay", "Okay", "😐"),
+        new("low", "Low", "😕"),
+        new("sad", "Sad", "😔")
+    };
+
+    private MoodModel selectedMood;
+    private string note;
+
+    private void SelectMood(MoodModel mood)
+    {
+        selectedMood = mood;
+    }
+
+    // UI-only handler; no business logic.
+    private void SaveCheckin()
+    {
+        // Intentionally left blank: UI-only page. You can add event callbacks here later.
+    }
+}

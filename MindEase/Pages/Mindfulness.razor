@@ -1,0 +1,127 @@
+@page "/mindfulness"
+@using MudBlazor
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="pa-6">
+    <MudStack Spacing="3">
+        <!-- Page Header -->
+        <MudStack Spacing="1">
+            <MudText Typo="Typo.h4">Mindfulness</MudText>
+            <MudText Typo="Typo.body1" Color="Color.Secondary">
+                Take a quiet moment to slow down, breathe, and reconnect with yourself.
+            </MudText>
+        </MudStack>
+
+        <!-- Featured Session Card -->
+        <MudCard Class="mindfulness-featured-card pa-4">
+            <MudStack Row="true" Spacing="4" Class="align-center flex-wrap">
+                <MudAvatar Color="Color.Primary" Size="Size.Large" Class="elevation-2">
+                    <MudIcon Icon="@Icons.Material.Filled.NightlightRound" />
+                </MudAvatar>
+
+                <MudStack Spacing="1" Class="flex-grow-1 min-width-0">
+                    <MudText Typo="Typo.h6">Evening Wind Down</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">
+                        A gentle guided session to release the day and prepare your mind for restful sleep.
+                    </MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-1">
+                        15 min • Guided audio
+                    </MudText>
+                </MudStack>
+
+                <MudButton Color="Color.Primary" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.PlayArrow" Class="mt-2 mt-sm-0">
+                    Start Session
+                </MudButton>
+            </MudStack>
+        </MudCard>
+
+        <!-- Sessions Grid -->
+        <MudStack Spacing="2" Class="mt-4">
+            <MudText Typo="Typo.subtitle1">Mindfulness Sessions</MudText>
+            <MudGrid Spacing="2">
+                @foreach (var session in mindfulnessSessions)
+                {
+                    <MudItem xs="12" sm="6">
+                        <MudCard Class="mindfulness-session-card pa-3">
+                            <MudStack Spacing="2">
+                                <MudStack Row="true" Spacing="2" Class="align-center">
+                                    <MudAvatar Color="Color.Secondary" Size="Size.Medium" Class="elevation-1">
+                                        <MudIcon Icon="@session.Icon" />
+                                    </MudAvatar>
+                                    <MudStack Spacing="0">
+                                        <MudText Typo="Typo.subtitle1">@session.Title</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">@session.Duration</MudText>
+                                    </MudStack>
+                                </MudStack>
+                                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PlayArrow" Size="Size.Small" Class="align-self-start">
+                                    Play
+                                </MudButton>
+                            </MudStack>
+                        </MudCard>
+                    </MudItem>
+                }
+            </MudGrid>
+        </MudStack>
+
+        <!-- Quick Exercises -->
+        <MudStack Spacing="2" Class="mt-4">
+            <MudText Typo="Typo.subtitle1">Quick Exercises</MudText>
+            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                Short practices you can do in a minute or less, whenever you need a reset.
+            </MudText>
+
+            <MudGrid Spacing="2">
+                @foreach (var quick in quickExercises)
+                {
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudCard Class="mindfulness-quick-card pa-3 d-flex flex-column justify-space-between">
+                            <MudStack Spacing="1">
+                                <MudText Typo="Typo.subtitle2">@quick.Title</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@quick.Duration</MudText>
+                            </MudStack>
+                        </MudCard>
+                    </MudItem>
+                }
+            </MudGrid>
+        </MudStack>
+    </MudStack>
+</MudContainer>
+
+@code {
+    private List<MindfulnessSessionModel> mindfulnessSessions = new()
+    {
+        new MindfulnessSessionModel
+        {
+            Title = "Morning Calm",
+            Duration = "10 min",
+            Icon = Icons.Material.Filled.WbSunny
+        },
+        new MindfulnessSessionModel
+        {
+            Title = "Deep Breathing",
+            Duration = "5 min",
+            Icon = Icons.Material.Filled.Air
+        },
+        new MindfulnessSessionModel
+        {
+            Title = "Forest Walk",
+            Duration = "12 min",
+            Icon = Icons.Material.Filled.NaturePeople
+        },
+        new MindfulnessSessionModel
+        {
+            Title = "Sleep Stories",
+            Duration = "20 min",
+            Icon = Icons.Material.Filled.Bedtime
+        }
+    };
+
+    private List<QuickExerciseModel> quickExercises = new()
+    {
+        new QuickExerciseModel { Title = "Box Breathing", Duration = "1 min" },
+        new QuickExerciseModel { Title = "Shoulder Release", Duration = "1 min" },
+        new QuickExerciseModel { Title = "Gratitude Pause", Duration = "2 min" },
+        new QuickExerciseModel { Title = "Body Scan", Duration = "2 min" },
+        new QuickExerciseModel { Title = "Mindful Sip", Duration = "1 min" },
+        new QuickExerciseModel { Title = "Soft Gaze", Duration = "1 min" }
+    };
+}

@@ -1,0 +1,155 @@
+@page "/mood-history"
+@using MudBlazor
+@using System.Linq
+
+<MudPaper Class="pa-6">
+    <MudText Typo="Typo.h4">Mood History</MudText>
+    <MudText Typo="Typo.subtitle2" Class="mb-6">A quick look at how your moods have trended over time and recent check-ins.</MudText>
+
+    <!-- Summary cards -->
+    <MudGrid>
+        <MudItem xs="12" sm="4">
+            <MudPaper Class="summary-card pa-4">
+                <MudText Typo="Typo.caption">Mood improvement</MudText>
+                <MudText Typo="Typo.h5">@($"{moodImprovement}%")</MudText>
+                <MudText Typo="Typo.body2" Class="mt-1">Since last week</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <MudPaper Class="summary-card pa-4">
+                <MudText Typo="Typo.caption">Current streak</MudText>
+                <MudText Typo="Typo.h5">@currentStreak <span class="muted">days</span></MudText>
+                <MudText Typo="Typo.body2" Class="mt-1">Consecutive days checked in</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <MudPaper Class="summary-card pa-4 d-flex align-center">
+                <div class="most-common-emoji mr-3">@mostCommonMood.Emoji</div>
+                <div>
+                    <MudText Typo="Typo.caption">Most common</MudText>
+                    <MudText Typo="Typo.h6">@mostCommonMood.Label</MudText>
+                </div>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+
+    <!-- Weekly overview -->
+    <MudPaper Class="pa-4 mt-6">
+        <MudText Typo="Typo.h6">Weekly overview</MudText>
+        <div class="d-flex justify-space-between mt-4 week-overview">
+            @foreach (var d in weeklyOverview)
+            {
+                <div class="d-flex flex-column align-center week-day">
+                    <MudText Typo="Typo.caption">@d.DayShort</MudText>
+                    <div class="mood-dot" style="background-color:@d.Color">@d.Emoji</div>
+                </div>
+            }
+        </div>
+    </MudPaper>
+
+    <!-- Recent entries -->
+    <MudText Typo="Typo.h6" Class="mt-6 mb-2">Recent Entries</MudText>
+    <div class="d-flex flex-column gap-3">
+        @foreach (var e in recentEntries)
+        {
+            <MudPaper Class="recent-entry pa-3">
+                <div class="d-flex align-center">
+                    <div class="emoji mr-3">@e.Mood.Emoji</div>
+                    <div class="flex-grow-1">
+                        <MudText Typo="Typo.subtitle2">@e.Date.ToString("ddd, MMM d • h:mm tt")</MudText>
+                        <MudText Typo="Typo.body2" Class="mt-1">@e.Note</MudText>
+                    </div>
+                    <MudText Typo="Typo.caption" Class="ml-2 muted">@e.Mood.Label</MudText>
+                </div>
+            </MudPaper>
+        }
+    </div>
+</MudPaper>
+
+@code {
+    // Simple DTO for weekly day rendering
+    private record DayMood(string DayShort, string Emoji, string Color);
+
+    private List<CheckInEntryModel> recentEntries = new();
+    private List<DayMood> weeklyOverview = new();
+
+    private int moodImprovement = 0;
+    private int currentStreak = 0;
+    private MoodModel mostCommonMood = new MoodModel("okay","Okay", "😐");
+
+    protected override void OnInitialized()
+    {
+        // Mock moods
+        var great = new MoodModel("great", "Great", "😁");
+        var good = new MoodModel("good", "Good", "🙂");
+        var okay = new MoodModel("okay", "Okay", "😐");
+        var low = new MoodModel("low", "Low", "😕");
+        var sad = new MoodModel("sad", "Sad", "😔");
+
+        // Mock recent entries (newest first)
+        recentEntries = new List<CheckInEntryModel>
+        {
+            new CheckInEntryModel(DateTime.Now.AddHours(-2), good, "Had a productive morning and went for a short walk."),
+            new CheckInEntryModel(DateTime.Now.AddDays(-1).AddHours(-3), okay, "Afternoon felt a bit neutral; some work stress."),
+            new CheckInEntryModel(DateTime.Now.AddDays(-2).AddHours(-5), great, "Great talk with a friend — felt energized."),
+            new CheckInEntryModel(DateTime.Now.AddDays(-3).AddHours(-6), low, "Low energy; took it easy."),
+            new CheckInEntryModel(DateTime.Now.AddDays(-4).AddHours(-2), good, "Good focus during tasks."),
+        };
+
+        // Weekly overview (Mon-Sun)
+        var days = Enumerable.Range(0, 7)
+            .Select(i => DateTime.Today.AddDays(i - 6)) // last 7 days ending today
+            .ToArray();
+
+        var moodSet = new[] { great, good, okay, low, sad };
+        var rnd = new Random(42);
+
+        weeklyOverview = days.Select(d =>
+        {
+            var m = moodSet[rnd.Next(moodSet.Length)];
+            var color = m.Label == "Great" ? "#C8E6C9" : m.Label == "Good" ? "#E8F5E9" : m.Label == "Okay" ? "#FFF9C4" : m.Label == "Low" ? "#FFE0B2" : "#FFCDD2";
+            return new DayMood(d.ToString("ddd"), m.Emoji, color);
+        }).ToList();
+
+        // Compute simple metrics
+        ComputeMetrics();
+    }
+
+    private void ComputeMetrics()
+    {
+        // Mood score mapping
+        var scoreMap = new Dictionary<string, int> { { "Great", 5 }, { "Good", 4 }, { "Okay", 3 }, { "Low", 2 }, { "Sad", 1 } };
+
+        var scores = recentEntries.Select(e => scoreMap.ContainsKey(e.Mood.Label) ? scoreMap[e.Mood.Label] : 3).ToList();
+
+         if (scores.Count >= 2)
+         {
+             var last = scores.Take(3).Average();
+             var previous = scores.Skip(3).Take(3).Any() ? scores.Skip(3).Take(3).Average() : last;
+             moodImprovement = (int)Math.Round(((last - previous) /  (previous == 0 ? 1 : previous)) * 100);
+         }        else
+        {
+            moodImprovement = 0;
+        }
+
+        // simple streak: count consecutive days in recentEntries up to today
+        currentStreak = 0;
+        var dates = recentEntries.Select(e => e.Date.Date).Distinct().OrderByDescending(d => d).ToList();
+        var expected = DateTime.Today;
+        foreach (var d in dates)
+        {
+            if (d == expected)
+            {
+                currentStreak++;
+                expected = expected.AddDays(-1);
+            }
+            else if (d < expected) break;
+        }
+
+        // most common mood
+        mostCommonMood = recentEntries.GroupBy(e => e.Mood.Label)
+                                .OrderByDescending(g => g.Count())
+                                .Select(g => g.First().Mood)
+                                .FirstOrDefault() ?? new MoodModel("okay","Okay","😐");
+    }
+}

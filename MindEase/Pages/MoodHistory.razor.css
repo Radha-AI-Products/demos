@@ -1,0 +1,11 @@
+.summary-card { border-radius: 12px; box-shadow: var(--mud-elevation-2); }
+.week-overview .week-day { width: 12%; min-width: 72px; }
+.mood-dot { width: 56px; height: 56px; border-radius: 50%; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow: var(--mud-elevation-1); }
+.recent-entry { border-radius: 10px; box-shadow: var(--mud-elevation-1); }
+.emoji { font-size: 28px; }
+.most-common-emoji { font-size: 36px; line-height: 1; }
+.muted { color: rgba(0,0,0,0.6); }
+@media (max-width:600px) {
+  .week-overview .week-day { width: 14%; }
+  .mood-dot { width:48px; height:48px; }
+}

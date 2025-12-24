@@ -1,0 +1,47 @@
+@inherits LayoutComponentBase
+@using MudBlazor
+
+
+@* Required *@
+<MudThemeProvider />
+<MudPopoverProvider />
+
+@* Needed for dialogs *@
+<MudDialogProvider />
+
+@* Needed for snackbars *@
+<MudSnackbarProvider />
+
+
+<div class="d-flex" style="min-height:100vh;">
+    <!-- Sidebar -->
+    <MudPaper Class="pa-4 d-flex flex-column" Width="260px" Elevation="3" Square="false">
+        <!-- Logo and App Name -->
+        <div class="d-flex align-center mb-6">
+            <MudAvatar Color="Color.Secondary">M</MudAvatar>
+            <MudText Typo="Typo.h5" Class="ml-3">MindEase</MudText>
+        </div>
+
+        <!-- Navigation -->
+        <MudNavMenu Bordered="false">
+            <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Edit" Class="mb-1"
+                ActiveClass="active-nav-item">Check-in</MudNavLink>
+            <MudNavLink Href="/mood-history" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.BarChart"
+                Class="mb-1" ActiveClass="active-nav-item">Mood History</MudNavLink>
+            <MudNavLink Href="/mindfulness" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.SelfImprovement"
+                Class="mb-1" ActiveClass="active-nav-item">Mindfulness</MudNavLink>
+            <MudNavLink Href="/insights" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Lightbulb" Class="mb-1"
+                ActiveClass="active-nav-item">Insights</MudNavLink>
+            <MudNavLink Href="/goals" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Flag" Class="mb-1"
+                ActiveClass="active-nav-item">Goals</MudNavLink>
+            <MudSpacer />
+            <MudNavLink Href="/settings" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Settings" Class="mt-4"
+                ActiveClass="active-nav-item">Settings</MudNavLink>
+        </MudNavMenu>
+    </MudPaper>
+
+    <!-- Main Content Area -->
+    <MudPaper Class="pa-6" Elevation="0" Square="true" Style="flex:1; border-left: 1px solid rgba(0,0,0,0.06);">
+        @Body
+    </MudPaper>
+</div>

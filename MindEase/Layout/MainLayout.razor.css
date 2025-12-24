@@ -1,0 +1,16 @@
+.active-nav-item {
+    background-color: #e1f0e7; /* soft sage green */
+    border-radius: 999px;
+}
+
+.mud-nav-link.active-nav-item {
+    font-weight: 600;
+}
+
+body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.mud-paper {
+    border-radius: 16px;
+}

@@ -1,0 +1,45 @@
+.checkin-card {
+    padding: 28px;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(18, 36, 38, 0.06);
+    background: linear-gradient(180deg, #ffffff, #fbfdfc);
+}
+
+.mood-list {
+    gap: 12px;
+}
+
+.mood-card {
+    border-radius: 12px;
+    padding: 8px;
+    text-align: center;
+    transition: transform 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+    border: 1px solid rgba(0,0,0,0.04);
+    background-color: #ffffff;
+}
+
+.mood-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(18, 36, 38, 0.06);
+}
+
+.mood-card.selected {
+    background-color: #e9f6f0; /* soft sage */
+    border: 1px solid rgba(46, 125, 105, 0.14);
+    box-shadow: 0 8px 24px rgba(46,125,105,0.08);
+}
+
+.note-field {
+    width: 100%;
+}
+
+@media (max-width: 720px) {
+    .mood-list {
+        gap: 8px;
+    }
+    .mood-card {
+        min-width: 90px;
+        max-width: 110px;
+        padding: 10px;
+    }
+}
