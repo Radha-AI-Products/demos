@@ -1,0 +1,402 @@
+@page "/watchlist"
+@using TradeStack.Models
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Popups
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Charts
+@using Syncfusion.Blazor.Navigations
+@using Syncfusion.Blazor.Inputs
+
+<div class="ts-watchlist-page">
+    <div class="d-flex flex-wrap align-items-end justify-content-between gap-2 mb-3">
+        <div>
+            <h3 class="mb-0 ts-section-title">Watchlist</h3>
+            <div class="text-muted">Track your symbols, reorder, and act quickly.</div>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <SfButton CssClass="e-outline" IconCss="fa-solid fa-arrow-down-a-z" Content="Sort" OnClick="@(_ => SortByChangeDesc())" />
+            <SfButton CssClass="e-outline" IconCss="fa-solid fa-rotate" Content="Reset" OnClick="@(_ => ResetWatchlist())" />
+        </div>
+    </div>
+
+    <div class="card ts-card ts-card-shadow mb-4">
+        <div class="card-body">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <span class="ts-chip"><i class="fa-solid fa-grip-vertical"></i> Drag rows to reorder</span>
+                    <span class="ts-chip"><i class="fa-solid fa-filter"></i> Filterable</span>
+                    <span class="ts-chip"><i class="fa-solid fa-file-export"></i> Export</span>
+                </div>
+                <div class="text-muted small">@watchlist.Count symbol(s)</div>
+            </div>
+
+            <div class="ts-watchlist-grid">
+                <SfGrid TValue="WatchlistQuoteModel" ID="WatchlistGrid" @ref="watchlistGrid"
+                        DataSource="@watchlist"
+                        AllowFiltering="true"
+                        AllowSorting="true"
+                        AllowPaging="true"
+                        AllowReordering="true"
+                        AllowRowDragAndDrop="true"
+                        AllowExcelExport="true"
+                        Height="420"
+                        Toolbar="@(new List<string>() { "ExcelExport", "CsvExport" })">
+                    <GridEvents TValue="WatchlistQuoteModel" RowDropped="OnRowDropped" OnToolbarClick="OnToolbarClick" />
+                    <GridPageSettings PageSize="10" PageSizes="@(new object[] { 10, 20, 50 })" />
+                    <GridFilterSettings Type="Syncfusion.Blazor.Grids.FilterType.Menu" />
+
+                    <GridColumns>
+                        <GridColumn Field="@nameof(WatchlistQuoteModel.Symbol)" HeaderText="Symbol" Width="110" />
+                        <GridColumn Field="@nameof(WatchlistQuoteModel.Company)" HeaderText="Company" Width="220" />
+                        <GridColumn Field="@nameof(WatchlistQuoteModel.CurrentPrice)" HeaderText="Current Price" Width="140" TextAlign="TextAlign.Right" Format="C2" />
+
+                        <GridColumn Field="@nameof(WatchlistQuoteModel.DayChangePct)" HeaderText="Day Change" Width="140" TextAlign="TextAlign.Right">
+                            <Template>
+                                @{
+                                    var row = (context as WatchlistQuoteModel);
+                                    var isPos = row != null && row.DayChangePct >= 0;
+                                    <span class="@(isPos ? "ts-change-pos" : "ts-change-neg")">
+                                        @((row?.DayChangePct ?? 0).ToString("+0.00%;-0.00%;0.00%"))
+                                    </span>
+                                }
+                            </Template>
+                        </GridColumn>
+
+                        <GridColumn Field="@nameof(WatchlistQuoteModel.Volume)" HeaderText="Volume" Width="130" TextAlign="TextAlign.Right" />
+
+                        <GridColumn Field="@nameof(WatchlistQuoteModel.Range52WHigh)" HeaderText="52W Range" Width="220">
+                            <Template>
+                                @{
+                                    var row = (context as WatchlistQuoteModel);
+                                    if (row != null)
+                                    {
+                                        var span = Math.Max(1, row.Range52WHigh - row.Range52WLow);
+                                        var pct = (row.CurrentPrice - row.Range52WLow) / span;
+                                        pct = Math.Min(1, Math.Max(0, pct));
+                                        <div class="ts-range">
+                                            <div class="d-flex justify-content-between small ts-muted mb-1">
+                                                <span>@row.Range52WLow.ToString("C0")</span>
+                                                <span>@row.Range52WHigh.ToString("C0")</span>
+                                            </div>
+                                            <div class="progress" role="progressbar" aria-label="52-week range">
+                                                <div class="progress-bar" style="width:@(pct * 100)%;"></div>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </Template>
+                        </GridColumn>
+
+                        <GridColumn HeaderText="Mini Chart" Width="190">
+                            <Template>
+                                @{
+                                    var row = (context as WatchlistQuoteModel);
+                                    if (row != null)
+                                    {
+                                        var isPos = row.DayChangePct >= 0;
+                                        var color = isPos ? "#22c55e" : "#ef4444";
+                                        <div class="ts-mini">
+                                            <SfSparkline TValue="double" Height="44px" Width="170px" Type="SparklineType.Line" Fill="@color" DataSource="@row.MiniSeries" />
+                                        </div>
+                                    }
+                                }
+                            </Template>
+                        </GridColumn>
+
+                        <GridColumn HeaderText="Actions" Width="160" AllowFiltering="false" AllowSorting="false">
+                            <Template>
+                                @{
+                                    var row = (context as WatchlistQuoteModel);
+                                    <div class="ts-actions">
+                                        <SfButton CssClass="e-small e-outline" IconCss="fa-solid fa-bolt" Content="Trade" OnClick="@(_ => OpenQuickTrade(row))" />
+                                        <SfButton CssClass="e-small e-outline e-danger" IconCss="fa-solid fa-trash" Content="Remove" OnClick="@(_ => RemoveFromWatchlist(row))" />
+                                    </div>
+                                }
+                            </Template>
+                        </GridColumn>
+                    </GridColumns>
+                </SfGrid>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex flex-wrap align-items-end justify-content-between gap-2 mb-3">
+        <div>
+            <h4 class="mb-0 ts-section-title">Market movers</h4>
+            <div class="text-muted">Quick snapshot of what’s moving today.</div>
+        </div>
+    </div>
+
+    <div class="ts-movers-grid mb-4">
+        <div class="card ts-card ts-card-shadow" style="grid-column: span 4;">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="fw-bold">Top gainers</div>
+                    <span class="ts-chip ts-change-pos">+%</span>
+                </div>
+                <SfGrid TValue="MarketMoverModel" DataSource="@topGainers" AllowPaging="false" AllowSorting="true" Height="260">
+                    <GridColumns>
+                        <GridColumn Field="@nameof(MarketMoverModel.Symbol)" HeaderText="Symbol" Width="90" />
+                        <GridColumn Field="@nameof(MarketMoverModel.Price)" HeaderText="Price" Width="100" TextAlign="TextAlign.Right" Format="C2" />
+                        <GridColumn Field="@nameof(MarketMoverModel.ChangePct)" HeaderText="Chg" Width="90" TextAlign="TextAlign.Right">
+                            <Template>
+                                @{
+                                    var row = (context as MarketMoverModel);
+                                    <span class="ts-change-pos">@((row?.ChangePct ?? 0).ToString("+0.00%;-0.00%;0.00%"))</span>
+                                }
+                            </Template>
+                        </GridColumn>
+                    </GridColumns>
+                </SfGrid>
+            </div>
+        </div>
+
+        <div class="card ts-card ts-card-shadow" style="grid-column: span 4;">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="fw-bold">Top losers</div>
+                    <span class="ts-chip ts-change-neg">-%</span>
+                </div>
+                <SfGrid TValue="MarketMoverModel" DataSource="@topLosers" AllowPaging="false" AllowSorting="true" Height="260">
+                    <GridColumns>
+                        <GridColumn Field="@nameof(MarketMoverModel.Symbol)" HeaderText="Symbol" Width="90" />
+                        <GridColumn Field="@nameof(MarketMoverModel.Price)" HeaderText="Price" Width="100" TextAlign="TextAlign.Right" Format="C2" />
+                        <GridColumn Field="@nameof(MarketMoverModel.ChangePct)" HeaderText="Chg" Width="90" TextAlign="TextAlign.Right">
+                            <Template>
+                                @{
+                                    var row = (context as MarketMoverModel);
+                                    <span class="ts-change-neg">@((row?.ChangePct ?? 0).ToString("+0.00%;-0.00%;0.00%"))</span>
+                                }
+                            </Template>
+                        </GridColumn>
+                    </GridColumns>
+                </SfGrid>
+            </div>
+        </div>
+
+        <div class="card ts-card ts-card-shadow" style="grid-column: span 4;">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="fw-bold">Most active</div>
+                    <span class="ts-chip"><i class="fa-solid fa-chart-column"></i></span>
+                </div>
+                <SfGrid TValue="MarketMoverModel" DataSource="@mostActive" AllowPaging="false" AllowSorting="true" Height="260">
+                    <GridColumns>
+                        <GridColumn Field="@nameof(MarketMoverModel.Symbol)" HeaderText="Symbol" Width="90" />
+                        <GridColumn Field="@nameof(MarketMoverModel.Volume)" HeaderText="Volume" Width="120" TextAlign="TextAlign.Right" />
+                        <GridColumn Field="@nameof(MarketMoverModel.Price)" HeaderText="Price" Width="90" TextAlign="TextAlign.Right" Format="C2" />
+                    </GridColumns>
+                </SfGrid>
+            </div>
+        </div>
+    </div>
+
+    <SfDialog Width="520px" ShowCloseIcon="true" CloseOnEscape="true" @bind-Visible="quickTradeVisible" IsModal="true" Header="@quickTradeHeader">
+        <DialogTemplates>
+            <Content>
+                @if (quickTradeSymbol != null)
+                {
+                    <div class="mb-3">
+                        <div class="fw-bold">@quickTradeSymbol.Symbol</div>
+                        <div class="text-muted">@quickTradeSymbol.Company</div>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-12 col-md-6">
+                            <div class="small text-muted mb-1">Side</div>
+                            <div class="d-flex gap-2">
+                                <SfButton CssClass="@(quickTradeSide == "Buy" ? "e-primary" : "e-outline")" Content="Buy" OnClick="@(_ => quickTradeSide = "Buy")" />
+                                <SfButton CssClass="@(quickTradeSide == "Sell" ? "e-primary" : "e-outline")" Content="Sell" OnClick="@(_ => quickTradeSide = "Sell")" />
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="small text-muted mb-1">Order type</div>
+                            <div class="d-flex gap-2">
+                                <SfButton CssClass="@(quickTradeType == "Market" ? "e-primary" : "e-outline")" Content="Market" OnClick="@(_ => quickTradeType = "Market")" />
+                                <SfButton CssClass="@(quickTradeType == "Limit" ? "e-primary" : "e-outline")" Content="Limit" OnClick="@(_ => quickTradeType = "Limit")" />
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="small text-muted mb-1">Quantity</div>
+                            <SfNumericTextBox TValue="int" Min="1" Step="1" Placeholder="Qty" ShowSpinButton="true" @bind-Value="quickTradeQty" />
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="small text-muted mb-1">Price</div>
+                            <SfNumericTextBox TValue="double" Step="0.01" Placeholder="Price" ShowSpinButton="true" Enabled="@(quickTradeType != "Market")" @bind-Value="quickTradePrice" />
+                        </div>
+                        <div class="col-12">
+                            <div class="p-3 rounded" style="background: rgba(0,0,0,.04);">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Est. notional</span>
+                                    <span class="fw-bold">@EstimatedNotional.ToString("C2")</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Est. fee</span>
+                                    <span class="fw-bold">@EstimatedFee.ToString("C2")</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </Content>
+        </DialogTemplates>
+        <DialogButtons>
+            <DialogButton Content="Cancel" CssClass="e-flat" OnClick="@(_ => quickTradeVisible = false)" />
+            <DialogButton Content="Place order" IsPrimary="true" IconCss="fa-solid fa-paper-plane" OnClick="@(_ => PlaceQuickTrade())" />
+        </DialogButtons>
+    </SfDialog>
+</div>
+
+@code {
+    private SfGrid<WatchlistQuoteModel>? watchlistGrid;
+
+    private List<WatchlistQuoteModel> watchlist = new();
+    private List<WatchlistQuoteModel> watchlistSeed = new();
+
+    private List<MarketMoverModel> topGainers = new();
+    private List<MarketMoverModel> topLosers = new();
+    private List<MarketMoverModel> mostActive = new();
+
+    private bool quickTradeVisible;
+    private string quickTradeHeader = "Quick trade";
+    private WatchlistQuoteModel? quickTradeSymbol;
+
+    private string quickTradeSide = "Buy";
+    private string quickTradeType = "Market";
+    private int quickTradeQty = 10;
+    private double quickTradePrice;
+
+    protected override void OnInitialized()
+    {
+        watchlistSeed = new()
+        {
+            new() { Id=1, Symbol="AAPL", Company="Apple Inc.", CurrentPrice=192.45, DayChangePct=0.012, Volume=53400211, Range52WLow=124, Range52WHigh=199, MiniSeries=Mini(191, 192, 191.6, 192.1, 191.9, 192.45) },
+            new() { Id=2, Symbol="MSFT", Company="Microsoft", CurrentPrice=409.88, DayChangePct=-0.006, Volume=28112444, Range52WLow=275, Range52WHigh=430, MiniSeries=Mini(413, 412.2, 411.5, 410.7, 410.1, 409.88) },
+            new() { Id=3, Symbol="NVDA", Company="NVIDIA", CurrentPrice=741.22, DayChangePct=0.018, Volume=39810210, Range52WLow=380, Range52WHigh=785, MiniSeries=Mini(724, 731, 736, 739, 742, 741.22) },
+            new() { Id=4, Symbol="AMZN", Company="Amazon.com", CurrentPrice=171.05, DayChangePct=-0.004, Volume=42188301, Range52WLow=102, Range52WHigh=189, MiniSeries=Mini(172.3, 172.0, 171.7, 171.4, 171.1, 171.05) },
+            new() { Id=5, Symbol="TSLA", Company="Tesla", CurrentPrice=187.62, DayChangePct=0.009, Volume=69233112, Range52WLow=138, Range52WHigh=299, MiniSeries=Mini(185, 185.8, 186.1, 186.9, 187.3, 187.62) },
+            new() { Id=6, Symbol="META", Company="Meta Platforms", CurrentPrice=469.21, DayChangePct=0.004, Volume=15228111, Range52WLow=245, Range52WHigh=485, MiniSeries=Mini(466, 467.2, 468.1, 468.8, 469.0, 469.21) },
+        };
+
+        ResetWatchlist();
+
+        topGainers = new()
+        {
+            new() { Rank=1, Symbol="PLTR", Company="Palantir", Price=24.31, ChangePct=0.084, Volume=88001123 },
+            new() { Rank=2, Symbol="AMD", Company="AMD", Price=164.12, ChangePct=0.052, Volume=51277880 },
+            new() { Rank=3, Symbol="SHOP", Company="Shopify", Price=83.44, ChangePct=0.041, Volume=22999110 },
+            new() { Rank=4, Symbol="UBER", Company="Uber", Price=74.05, ChangePct=0.036, Volume=30112010 }
+        };
+
+        topLosers = new()
+        {
+            new() { Rank=1, Symbol="SNAP", Company="Snap", Price=14.20, ChangePct=-0.061, Volume=44122911 },
+            new() { Rank=2, Symbol="PINS", Company="Pinterest", Price=33.10, ChangePct=-0.044, Volume=18001102 },
+            new() { Rank=3, Symbol="ZM", Company="Zoom", Price=62.09, ChangePct=-0.038, Volume=9011200 },
+            new() { Rank=4, Symbol="INTC", Company="Intel", Price=41.33, ChangePct=-0.032, Volume=55222109 }
+        };
+
+        mostActive = new()
+        {
+            new() { Rank=1, Symbol="TSLA", Company="Tesla", Price=187.62, ChangePct=0.009, Volume=69233112 },
+            new() { Rank=2, Symbol="AAPL", Company="Apple", Price=192.45, ChangePct=0.012, Volume=53400211 },
+            new() { Rank=3, Symbol="NVDA", Company="NVIDIA", Price=741.22, ChangePct=0.018, Volume=39810210 },
+            new() { Rank=4, Symbol="AMZN", Company="Amazon", Price=171.05, ChangePct=-0.004, Volume=42188301 }
+        };
+    }
+
+    private void ResetWatchlist()
+    {
+        watchlist = watchlistSeed.Select(x => new WatchlistQuoteModel
+        {
+            Id = x.Id,
+            Symbol = x.Symbol,
+            Company = x.Company,
+            CurrentPrice = x.CurrentPrice,
+            DayChangePct = x.DayChangePct,
+            Volume = x.Volume,
+            Range52WLow = x.Range52WLow,
+            Range52WHigh = x.Range52WHigh,
+            MiniSeries = new List<double>(x.MiniSeries)
+        }).ToList();
+    }
+
+    private void SortByChangeDesc()
+    {
+        watchlist = watchlist.OrderByDescending(x => x.DayChangePct).ToList();
+    }
+
+    private async Task OnToolbarClick(Syncfusion.Blazor.Navigations.ClickEventArgs args)
+    {
+        if (watchlistGrid == null)
+        {
+            return;
+        }
+
+        if (args.Item.Id == "WatchlistGrid_excelexport")
+        {
+            await watchlistGrid.ExportToExcelAsync();
+        }
+        else if (args.Item.Id == "WatchlistGrid_csvexport")
+        {
+            await watchlistGrid.ExportToCsvAsync(new ExcelExportProperties());
+        }
+    }
+
+    private async void OnRowDropped(RowDroppedEventArgs<WatchlistQuoteModel> args)
+    {
+        await SyncFromGridOrder();
+    }
+
+    private async Task SyncFromGridOrder()
+    {
+        if (watchlistGrid == null)
+        {
+            return;
+        }
+
+        var current = await watchlistGrid.GetCurrentViewRecordsAsync();
+        if (current != null)
+        {
+            watchlist = current.ToList();
+        }
+    }
+
+    private void OpenQuickTrade(WatchlistQuoteModel? row)
+    {
+        if (row == null)
+        {
+            return;
+        }
+
+        quickTradeSymbol = row;
+        quickTradeHeader = $"Quick trade • {row.Symbol}";
+        quickTradeSide = "Buy";
+        quickTradeType = "Market";
+        quickTradeQty = 10;
+        quickTradePrice = row.CurrentPrice;
+        quickTradeVisible = true;
+    }
+
+    private void RemoveFromWatchlist(WatchlistQuoteModel? row)
+    {
+        if (row == null)
+        {
+            return;
+        }
+
+        watchlist = watchlist.Where(x => x.Id != row.Id).ToList();
+    }
+
+    private void PlaceQuickTrade()
+    {
+        quickTradeVisible = false;
+    }
+
+    private double EstimatedNotional => quickTradeSymbol == null
+        ? 0
+        : (quickTradeQty * (quickTradeType == "Market" ? quickTradeSymbol.CurrentPrice : quickTradePrice));
+
+    private double EstimatedFee => EstimatedNotional * 0.0005;
+
+    private static List<double> Mini(params double[] values) => values.ToList();
+}

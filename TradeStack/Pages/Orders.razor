@@ -1,0 +1,443 @@
+@page "/orders"
+@using TradeStack.Models
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Cards
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.Navigations
+@using Syncfusion.Blazor.Popups
+@inject SfDialogService DialogService
+
+<div class="ts-orders-shell">
+    <div class="ts-orders-header">
+        <div>
+            <h3 class="ts-orders-title">Orders</h3>
+            <div class="ts-orders-subtitle">Track and manage open, executed, and cancelled orders.</div>
+        </div>
+        <div class="ts-orders-actions">
+            <SfButton CssClass="e-outline" IconCss="fa-solid fa-rotate" Content="Refresh" OnClick="Refresh"></SfButton>
+            <SfButton IsPrimary="true" IconCss="fa-solid fa-plus" Content="Place Order" OnClick="OpenPlaceOrder"></SfButton>
+        </div>
+    </div>
+
+    <div class="ts-orders-content">
+        <div class="card shadow-sm ts-orders-tabwrap">
+            <div class="card-body p-0">
+                <div style="height:640px">
+                    <SfTab Height="100%">
+                        <TabItems>
+                            <TabItem>
+                                <HeaderTemplate>
+                                    Open Orders <span class="e-badge e-badge-primary ms-2">@openOrders.Count</span>
+                                </HeaderTemplate>
+                                <ContentTemplate>
+                                    <div class="ts-orders-grid">
+                                        <SfGrid TValue="OrderModel" DataSource="@openOrders" AllowSorting="true" AllowFiltering="true" AllowPaging="true" EnableHover="true" Height="100%">
+                                            <GridFilterSettings Type="Syncfusion.Blazor.Grids.FilterType.Menu" ShowFilterBarStatus="false"></GridFilterSettings>
+                                            <GridPageSettings PageSize="10" PageCount="5"></GridPageSettings>
+                                            <GridColumns>
+                                                <GridColumn Field="@nameof(OrderModel.OrderId)" HeaderText="Order ID" Width="110" TextAlign="TextAlign.Right" IsPrimaryKey="true"></GridColumn>
+                                                <GridColumn Field="@nameof(OrderModel.Symbol)" HeaderText="Symbol" Width="110"></GridColumn>
+                                                <GridColumn Field="@nameof(OrderModel.Type)" HeaderText="Type" Width="110"></GridColumn>
+                                                <GridColumn Field="@nameof(OrderModel.Qty)" HeaderText="Qty" Width="100" TextAlign="TextAlign.Right"></GridColumn>
+                                                <GridColumn Field="@nameof(OrderModel.OrderPrice)" HeaderText="Order Price" Width="130" TextAlign="TextAlign.Right" Format="C2"></GridColumn>
+                                                <GridColumn Field="@nameof(OrderModel.ExecutedPrice)" HeaderText="Executed Price" Width="140" TextAlign="TextAlign.Right" Format="C2"></GridColumn>
+                                                <GridColumn Field="@nameof(OrderModel.Status)" HeaderText="Status" Width="150">
+                                                    <Template>
+                                                        @{ 
+                                                            var o = (context as OrderModel)!;
+                                                            <span class="e-badge @StatusBadgeCss(o.Status)">@o.Status</span>
+                                                        }
+                                                    </Template>
+                                                </GridColumn>
+                                                <GridColumn Field="@nameof(OrderModel.Timestamp)" HeaderText="Timestamp" Width="170" Type="ColumnType.Date" Format="g"></GridColumn>
+                                                <GridColumn HeaderText="Actions" Width="140" AllowSorting="false" AllowFiltering="false">
+                                                    <Template>
+                                                        @{ 
+                                                            var o = (context as OrderModel)!;
+                                                            <div class="d-flex gap-2">
+                                                                <SfButton CssClass="e-small e-flat" IconCss="fa-solid fa-copy" Content="Dup" OnClick="@(() => Duplicate(o))"></SfButton>
+                                                                <SfButton CssClass="e-small e-danger e-flat" IconCss="fa-solid fa-xmark" Content="Cancel" OnClick="@(() => Cancel(o))"></SfButton>
+                                                            </div>
+                                                        }
+                                                    </Template>
+                                                </GridColumn>
+                                            </GridColumns>
+                                        </SfGrid>
+                                    </div>
+                                </ContentTemplate>
+                            </TabItem>
+
+                            <TabItem>
+                                <HeaderTemplate>
+                                    Executed <span class="e-badge e-badge-success ms-2">@executedOrders.Count</span>
+                                </HeaderTemplate>
+                                <ContentTemplate>
+                                    <div class="ts-orders-grid">
+                                        <SfGrid TValue="OrderModel" DataSource="@executedOrders" AllowSorting="true" AllowFiltering="true" AllowPaging="true" EnableHover="true" Height="100%">
+                                            <GridFilterSettings Type="Syncfusion.Blazor.Grids.FilterType.Menu" ShowFilterBarStatus="false"></GridFilterSettings>
+                                            <GridPageSettings PageSize="10" PageCount="5"></GridPageSettings>
+                                            <GridColumns>
+                                                <GridColumn Field="@nameof(OrderModel.OrderId)" HeaderText="Order ID" Width="110" TextAlign="TextAlign.Right" IsPrimaryKey="true"></GridColumn>
+                                                <GridColumn Field="@nameof(OrderModel.Symbol)" HeaderText="Symbol" Width="110"></GridColumn>
+                                                <GridColumn Field="@nameof(OrderModel.Type)" HeaderText="Type" Width="110"></GridColumn>
+                                                <GridColumn Field="@nameof(OrderModel.Qty)" HeaderText="Qty" Width="100" TextAlign="TextAlign.Right"></GridColumn>
+                                                <GridColumn Field="@nameof(OrderModel.OrderPrice)" HeaderText="Order Price" Width="130" TextAlign="TextAlign.Right" Format="C2"></GridColumn>
+                                                <GridColumn Field="@nameof(OrderModel.ExecutedPrice)" HeaderText="Executed Price" Width="140" TextAlign="TextAlign.Right" Format="C2"></GridColumn>
+                                                <GridColumn Field="@nameof(OrderModel.Status)" HeaderText="Status" Width="150">
+                                                    <Template>
+                                                        @{ 
+                                                            var o = (context as OrderModel)!;
+                                                            <span class="e-badge @StatusBadgeCss(o.Status)">@o.Status</span>
+                                                        }
+                                                    </Template>
+                                                </GridColumn>
+                                                <GridColumn Field="@nameof(OrderModel.Timestamp)" HeaderText="Timestamp" Width="170" Type="ColumnType.Date" Format="g"></GridColumn>
+                                                <GridColumn HeaderText="Actions" Width="120" AllowSorting="false" AllowFiltering="false">
+                                                    <Template>
+                                                        @{ 
+                                                            var o = (context as OrderModel)!;
+                                                            <SfButton CssClass="e-small e-flat" IconCss="fa-solid fa-copy" Content="Dup" OnClick="@(() => Duplicate(o))"></SfButton>
+                                                        }
+                                                    </Template>
+                                                </GridColumn>
+                                            </GridColumns>
+                                        </SfGrid>
+                                    </div>
+                                </ContentTemplate>
+                            </TabItem>
+
+                            <TabItem>
+                                <HeaderTemplate>
+                                    Cancelled <span class="e-badge e-badge-warning ms-2">@cancelledOrders.Count</span>
+                                </HeaderTemplate>
+                                <ContentTemplate>
+                                    <div class="ts-orders-grid">
+                                        <SfGrid TValue="OrderModel" DataSource="@cancelledOrders" AllowSorting="true" AllowFiltering="true" AllowPaging="true" EnableHover="true" Height="100%">
+                                            <GridFilterSettings Type="Syncfusion.Blazor.Grids.FilterType.Menu" ShowFilterBarStatus="false"></GridFilterSettings>
+                                            <GridPageSettings PageSize="10" PageCount="5"></GridPageSettings>
+                                            <GridColumns>
+                                                <GridColumn Field="@nameof(OrderModel.OrderId)" HeaderText="Order ID" Width="110" TextAlign="TextAlign.Right" IsPrimaryKey="true"></GridColumn>
+                                                <GridColumn Field="@nameof(OrderModel.Symbol)" HeaderText="Symbol" Width="110"></GridColumn>
+                                                <GridColumn Field="@nameof(OrderModel.Type)" HeaderText="Type" Width="110"></GridColumn>
+                                                <GridColumn Field="@nameof(OrderModel.Qty)" HeaderText="Qty" Width="100" TextAlign="TextAlign.Right"></GridColumn>
+                                                <GridColumn Field="@nameof(OrderModel.OrderPrice)" HeaderText="Order Price" Width="130" TextAlign="TextAlign.Right" Format="C2"></GridColumn>
+                                                <GridColumn Field="@nameof(OrderModel.ExecutedPrice)" HeaderText="Executed Price" Width="140" TextAlign="TextAlign.Right" Format="C2"></GridColumn>
+                                                <GridColumn Field="@nameof(OrderModel.Status)" HeaderText="Status" Width="150">
+                                                    <Template>
+                                                        @{ 
+                                                            var o = (context as OrderModel)!;
+                                                            <span class="e-badge @StatusBadgeCss(o.Status)">@o.Status</span>
+                                                        }
+                                                    </Template>
+                                                </GridColumn>
+                                                <GridColumn Field="@nameof(OrderModel.Timestamp)" HeaderText="Timestamp" Width="170" Type="ColumnType.Date" Format="g"></GridColumn>
+                                                <GridColumn HeaderText="Actions" Width="120" AllowSorting="false" AllowFiltering="false">
+                                                    <Template>
+                                                        @{ 
+                                                            var o = (context as OrderModel)!;
+                                                            <SfButton CssClass="e-small e-flat" IconCss="fa-solid fa-copy" Content="Dup" OnClick="@(() => Duplicate(o))"></SfButton>
+                                                        }
+                                                    </Template>
+                                                </GridColumn>
+                                            </GridColumns>
+                                        </SfGrid>
+                                    </div>
+                                </ContentTemplate>
+                            </TabItem>
+                        </TabItems>
+                    </SfTab>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<SfSidebar Width="420px" Type="SidebarType.Over" Position="SidebarPosition.Right" ShowBackdrop="true" @bind-IsOpen="placeOrderOpen" class="shadow">
+    <ChildContent>
+        <div class="ts-order-drawer">
+            <div class="ts-drawer-head">
+                <div>
+                    <h4 class="ts-drawer-title">Place order</h4>
+                    <div class="ts-status-sub">Preview margin and submit when ready.</div>
+                </div>
+                <SfButton CssClass="e-small e-flat" IconCss="fa-solid fa-xmark" Content="Close" OnClick="ClosePlaceOrder"></SfButton>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+                <SfButton CssClass="@(draft.Side == OrderSide.Buy ? "e-success" : "e-outline")" Content="Buy" OnClick="SetBuy"></SfButton>
+                <SfButton CssClass="@(draft.Side == OrderSide.Sell ? "e-danger" : "e-outline")" Content="Sell" OnClick="SetSell"></SfButton>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+                <SfButton CssClass="@(draft.Kind == OrderKind.Market ? "e-primary" : "e-outline")" Content="Market" OnClick="SetMarket"></SfButton>
+                <SfButton CssClass="@(draft.Kind == OrderKind.Limit ? "e-primary" : "e-outline")" Content="Limit" OnClick="SetLimit"></SfButton>
+            </div>
+
+            <div class="ts-form-grid">
+                <SfTextBox CssClass="ts-input" Placeholder="Symbol" @bind-Value="draft.Symbol" ShowClearButton="true"></SfTextBox>
+                <SfNumericTextBox TValue="double?" CssClass="ts-input" Placeholder="Quantity" Min="0" Step="1" Decimals="0" @bind-Value="draft.Qty" Format="n0"></SfNumericTextBox>
+                @if (draft.Kind == OrderKind.Limit)
+                {
+                    <SfNumericTextBox TValue="double?" CssClass="ts-input" Placeholder="Limit price" Min="0" Step="0.01" Decimals="2" @bind-Value="draft.LimitPrice" Format="c2"></SfNumericTextBox>
+                }
+                else
+                {
+                    <SfNumericTextBox TValue="double?" CssClass="ts-input" Placeholder="Market price (est.)" Min="0" Step="0.01" Decimals="2" Value="@marketPrice" Readonly="true" Format="c2"></SfNumericTextBox>
+                }
+                <SfNumericTextBox TValue="double?" CssClass="ts-input" Placeholder="Leverage" Min="1" Max="5" Step="0.5" Decimals="1" @bind-Value="leverage" Format="n1"></SfNumericTextBox>
+                <SfNumericTextBox TValue="double?" CssClass="ts-input" Placeholder="Available cash" Value="@availableCash" Readonly="true" Format="c2"></SfNumericTextBox>
+            </div>
+
+            <SfCard CssClass="ts-margin-card shadow-sm">
+                <CardContent>
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <div class="fw-semibold">Margin preview</div>
+                            <div class="ts-status-sub">Estimated; excludes fees.</div>
+                        </div>
+                        <span class="e-badge e-badge-info">@draft.Kind</span>
+                    </div>
+                    <hr class="my-3" />
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <div class="ts-status-sub">Notional</div>
+                            <div class="fw-semibold">@FormatMoney(Notional)</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="ts-status-sub">Required margin</div>
+                            <div class="fw-semibold">@FormatMoney(RequiredMargin)</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="ts-status-sub">Remaining cash</div>
+                            <div class="fw-semibold">@FormatMoney(RemainingCash)</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="ts-status-sub">Side</div>
+                            <div class="fw-semibold">@draft.Side</div>
+                        </div>
+                    </div>
+                </CardContent>
+            </SfCard>
+
+            <div class="ts-drawer-footer">
+                <div class="ts-hint">Submitting will create a new order in Open Orders.</div>
+                <SfButton IsPrimary="true" IconCss="fa-solid fa-paper-plane" Content="Submit" OnClick="Submit"></SfButton>
+            </div>
+        </div>
+    </ChildContent>
+</SfSidebar>
+
+@code {
+    private readonly Random rng = new();
+    private List<OrderModel> openOrders = new();
+    private List<OrderModel> executedOrders = new();
+    private List<OrderModel> cancelledOrders = new();
+
+    private bool placeOrderOpen;
+    private PlaceOrderDraftModel draft = new();
+
+    private double marketPrice = 187.42;
+    private double availableCash = 12500.00;
+    private double? leverage = 2.0;
+
+    protected override void OnInitialized()
+    {
+        Seed();
+    }
+
+    private void Seed()
+    {
+        openOrders = Enumerable.Range(1, 18).Select(i => new OrderModel
+        {
+            OrderId = 52000 + i,
+            Symbol = (new[] { "AAPL", "MSFT", "NVDA", "TSLA", "AMZN", "META" })[rng.Next(6)],
+            Type = rng.Next(2) == 0 ? "Limit" : "Market",
+            Qty = (rng.Next(1, 8) * 10),
+            OrderPrice = rng.Next(2) == 0 ? (double?)Math.Round(rng.NextDouble() * 200 + 50, 2) : null,
+            ExecutedPrice = null,
+            Status = rng.Next(3) switch
+            {
+                0 => OrderStatus.Open,
+                1 => OrderStatus.PartiallyFilled,
+                _ => OrderStatus.Open
+            },
+            Timestamp = DateTime.Now.AddMinutes(-rng.Next(15, 7200))
+        }).OrderByDescending(o => o.Timestamp).ToList();
+
+        executedOrders = Enumerable.Range(1, 22).Select(i => new OrderModel
+        {
+            OrderId = 51000 + i,
+            Symbol = (new[] { "AAPL", "MSFT", "NVDA", "TSLA", "AMZN", "META", "GOOGL" })[rng.Next(7)],
+            Type = rng.Next(2) == 0 ? "Limit" : "Market",
+            Qty = (rng.Next(1, 10) * 5),
+            OrderPrice = Math.Round(rng.NextDouble() * 200 + 50, 2),
+            ExecutedPrice = Math.Round(rng.NextDouble() * 200 + 50, 2),
+            Status = OrderStatus.Filled,
+            Timestamp = DateTime.Now.AddDays(-rng.Next(1, 30)).AddMinutes(-rng.Next(0, 1440))
+        }).OrderByDescending(o => o.Timestamp).ToList();
+
+        cancelledOrders = Enumerable.Range(1, 10).Select(i => new OrderModel
+        {
+            OrderId = 50500 + i,
+            Symbol = (new[] { "AAPL", "MSFT", "NVDA", "TSLA", "AMZN" })[rng.Next(5)],
+            Type = rng.Next(2) == 0 ? "Limit" : "Market",
+            Qty = (rng.Next(1, 7) * 10),
+            OrderPrice = Math.Round(rng.NextDouble() * 200 + 50, 2),
+            ExecutedPrice = null,
+            Status = OrderStatus.Cancelled,
+            Timestamp = DateTime.Now.AddDays(-rng.Next(1, 20)).AddMinutes(-rng.Next(0, 1440))
+        }).OrderByDescending(o => o.Timestamp).ToList();
+    }
+
+    private void Refresh()
+    {
+        marketPrice = Math.Round(120 + rng.NextDouble() * 180, 2);
+        Seed();
+    }
+
+    private void OpenPlaceOrder() => placeOrderOpen = true;
+
+    private void ClosePlaceOrder() => placeOrderOpen = false;
+
+    private void SetBuy() => draft.Side = OrderSide.Buy;
+
+    private void SetSell() => draft.Side = OrderSide.Sell;
+
+    private void SetMarket()
+    {
+        draft.Kind = OrderKind.Market;
+        draft.LimitPrice = null;
+    }
+
+    private void SetLimit()
+    {
+        draft.Kind = OrderKind.Limit;
+        draft.LimitPrice ??= marketPrice;
+    }
+
+    private string StatusBadgeCss(OrderStatus status) => status switch
+    {
+        OrderStatus.Open => "e-badge-info",
+        OrderStatus.PartiallyFilled => "e-badge-warning",
+        OrderStatus.Filled => "e-badge-success",
+        OrderStatus.Cancelled => "e-badge-warning",
+        OrderStatus.Rejected => "e-badge-danger",
+        _ => "e-badge-secondary"
+    };
+
+    private void Duplicate(OrderModel order)
+    {
+        draft.Symbol = order.Symbol;
+        draft.Qty = order.Qty;
+        draft.Kind = order.Type.Contains("Limit", StringComparison.OrdinalIgnoreCase) ? OrderKind.Limit : OrderKind.Market;
+        draft.LimitPrice = order.OrderPrice;
+        placeOrderOpen = true;
+    }
+
+    private async Task Cancel(OrderModel order)
+    {
+        if (order.Status != OrderStatus.Open && order.Status != OrderStatus.PartiallyFilled)
+        {
+            await DialogService.AlertAsync("Only open orders can be cancelled.", "Cancel order", new DialogOptions());
+            return;
+        }
+
+        var ok = await DialogService.ConfirmAsync($"Cancel order #{order.OrderId} for {order.Symbol}?", "Cancel order", new DialogOptions()
+        {
+            PrimaryButtonOptions = new DialogButtonOptions { Content = "Cancel order" },
+            CancelButtonOptions = new DialogButtonOptions { Content = "Keep" }
+        });
+
+        if (!ok) return;
+
+        openOrders = openOrders.Where(o => o.OrderId != order.OrderId).ToList();
+        var moved = new OrderModel
+        {
+            OrderId = order.OrderId,
+            Symbol = order.Symbol,
+            Type = order.Type,
+            Qty = order.Qty,
+            OrderPrice = order.OrderPrice,
+            ExecutedPrice = order.ExecutedPrice,
+            Status = OrderStatus.Cancelled,
+            Timestamp = DateTime.Now
+        };
+
+        cancelledOrders = new[] { moved }.Concat(cancelledOrders).ToList();
+    }
+
+    private async Task Submit()
+    {
+        var notional = Notional;
+
+        if (string.IsNullOrWhiteSpace(draft.Symbol) || draft.Qty is null || draft.Qty <= 0)
+        {
+            await DialogService.AlertAsync("Enter a symbol and a quantity.", "Place order", new DialogOptions());
+            return;
+        }
+
+        if (draft.Kind == OrderKind.Limit && (draft.LimitPrice is null || draft.LimitPrice <= 0))
+        {
+            await DialogService.AlertAsync("Enter a valid limit price.", "Place order", new DialogOptions());
+            return;
+        }
+
+        var sideTxt = draft.Side == OrderSide.Buy ? "Buy" : "Sell";
+        var pxTxt = draft.Kind == OrderKind.Limit ? $"Limit @ {draft.LimitPrice:0.00}" : $"Market (est.) @ {marketPrice:0.00}";
+
+        var ok = await DialogService.ConfirmAsync($"{sideTxt} {draft.Qty:0} {draft.Symbol} • {pxTxt}\nEstimated notional: {FormatMoney(notional)}", "Confirm order", new DialogOptions()
+        {
+            PrimaryButtonOptions = new DialogButtonOptions { Content = "Submit" },
+            CancelButtonOptions = new DialogButtonOptions { Content = "Review" }
+        });
+
+        if (!ok) return;
+
+        var order = new OrderModel
+        {
+            OrderId = rng.Next(60000, 69999),
+            Symbol = draft.Symbol.Trim().ToUpperInvariant(),
+            Type = draft.Kind == OrderKind.Limit ? "Limit" : "Market",
+            Qty = draft.Qty.Value,
+            OrderPrice = draft.Kind == OrderKind.Limit ? draft.LimitPrice : null,
+            ExecutedPrice = null,
+            Status = OrderStatus.Open,
+            Timestamp = DateTime.Now
+        };
+
+        openOrders = new[] { order }.Concat(openOrders).ToList();
+        placeOrderOpen = false;
+        draft = new PlaceOrderDraftModel { Symbol = order.Symbol };
+    }
+
+    private string FormatMoney(double? value) => value is null ? "—" : value.Value.ToString("C2");
+
+    private double? Notional => draft.EstimatedNotional(marketPrice);
+
+    private double? RequiredMargin
+    {
+        get
+        {
+            var notional = Notional;
+            if (notional is null) return null;
+
+            var lev = leverage ?? 1.0;
+            if (lev <= 0) lev = 1.0;
+
+            return notional.Value / lev;
+        }
+    }
+
+    private double? RemainingCash
+    {
+        get
+        {
+            var req = RequiredMargin;
+            if (req is null) return null;
+
+            return availableCash - req.Value;
+        }
+    }
+}

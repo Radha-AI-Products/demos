@@ -1,0 +1,36 @@
+@using Syncfusion.Blazor.Cards
+@using Syncfusion.Blazor.Charts
+@using TradeStack.Models
+
+<SfCard CssClass="ts-kpi-card">
+    <CardContent>
+        <div class="d-flex align-items-start justify-content-between gap-2">
+            <div class="flex-grow-1">
+                <div class="text-muted small">@Title</div>
+                <div class="fs-4 fw-semibold mt-1">@Value</div>
+                <div class="d-flex align-items-center gap-2 mt-1">
+                    <span class="badge rounded-pill @DeltaBadgeCss">
+                        <i class="fa-solid @DeltaIconCss me-1"></i>@Delta
+                    </span>
+                    <span class="text-muted small">vs prev.</span>
+                </div>
+            </div>
+
+            <div class="ts-kpi-spark">
+                <SfSparkline TValue="KpiSparkPointModel" DataSource="@Spark" XName="Index" YName="Value" Width="140px" Height="44px" Type="SparklineType.Line">
+                </SfSparkline>
+            </div>
+        </div>
+    </CardContent>
+</SfCard>
+
+@code {
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public string Value { get; set; } = string.Empty;
+    [Parameter] public string Delta { get; set; } = string.Empty;
+    [Parameter] public bool IsPositive { get; set; }
+    [Parameter] public List<KpiSparkPointModel> Spark { get; set; } = new();
+
+    private string DeltaBadgeCss => IsPositive ? "text-bg-success" : "text-bg-danger";
+    private string DeltaIconCss => IsPositive ? "fa-arrow-trend-up" : "fa-arrow-trend-down";
+}

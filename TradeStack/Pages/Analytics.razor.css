@@ -1,0 +1,108 @@
+.ts-analytics-shell {
+}
+
+.ts-analytics-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.ts-metric-card {
+    border: 1px solid rgba(0,0,0,.06);
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, .05);
+}
+
+.ts-metric-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.ts-metric-title {
+    font-size: .85rem;
+    color: #6c757d;
+}
+
+.ts-metric-value {
+    font-weight: 750;
+    font-size: 1.3rem;
+    letter-spacing: -0.02em;
+}
+
+.ts-metric-delta {
+    font-size: .82rem;
+}
+
+.ts-metric-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,.04);
+    color: rgba(0,0,0,.7);
+}
+
+.ts-chart-card {
+    border: 1px solid rgba(0,0,0,.06);
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, .05);
+}
+
+.ts-section-title {
+    font-weight: 650;
+}
+
+.ts-chart-wrap {
+    min-height: 320px;
+}
+
+.ts-chart-wrap-sm {
+    min-height: 280px;
+}
+
+.ts-heatmap-wrap {
+    height: 340px;
+}
+
+.ts-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: .82rem;
+    border: 1px solid rgba(0,0,0,.08);
+    background: rgba(0,0,0,.02);
+}
+
+.ts-chip i {
+    opacity: .75;
+}
+
+::deep .ts-grid .e-grid {
+    border-radius: 12px;
+}
+
+::deep .ts-grid .e-gridheader {
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+::deep .ts-grid .e-gridpager {
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
+@media (max-width: 1199.98px) {
+    .ts-heatmap-wrap {
+        height: 320px;
+    }
+}

@@ -1,0 +1,71 @@
+::deep .ts-profile-tabs .e-tab-header {
+    border-bottom: 1px solid rgba(0,0,0,.08);
+}
+
+::deep .ts-profile-tabs .e-tab-header .e-toolbar-item .e-tab-text {
+    font-weight: 600;
+}
+
+.ts-profile-card {
+    border-radius: 14px;
+}
+
+.ts-profile-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #eef2ff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #1f2a44;
+}
+
+.ts-profile-muted {
+    color: rgba(0,0,0,.6);
+}
+
+::deep .ts-profile-inplace .e-inplaceeditor,
+::deep .ts-profile-inplace .e-inplaceeditor .e-editable-value-wrapper {
+    width: 100%;
+}
+
+::deep .ts-profile-inplace .e-input-group,
+::deep .ts-profile-inplace .e-control-wrapper {
+    width: 100%;
+}
+
+::deep .ts-profile-inplace .e-editable-value {
+    font-weight: 600;
+}
+
+::deep .ts-profile-inplace .e-editable-value,
+::deep .ts-profile-inplace .e-editable-overlay-icon {
+    cursor: pointer;
+}
+
+.ts-profile-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+.ts-qr-wrap {
+    padding: .25rem;
+}
+
+.ts-qr-key {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-weight: 600;
+    padding: .5rem .75rem;
+    border-radius: 10px;
+    background: rgba(0,0,0,.04);
+    overflow: auto;
+}
+
+@media (min-width: 992px) {
+    .ts-profile-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}

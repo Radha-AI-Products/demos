@@ -1,0 +1,181 @@
+.ts-shell {
+    height: 100vh;
+    overflow: hidden; /* keep shell fixed; only content regions scroll */
+    background: var(--bs-body-bg);
+}
+
+/* AppBar */
+::deep .ts-appbar {
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    backdrop-filter: blur(8px);
+}
+
+.ts-search {
+    width: min(640px, 58vw);
+    margin-left: 0.75rem;
+}
+
+::deep .ts-search .e-input-group,
+::deep .ts-search .e-float-input {
+    border-radius: 999px;
+}
+
+::deep .ts-search .e-input-group {
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+    border-color: rgba(15, 23, 42, 0.12);
+}
+
+.ts-appbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.ts-notification {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ts-notification .e-badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+}
+
+::deep .ts-appbar-btn {
+    border-radius: 999px;
+}
+
+.ts-avatar {
+    background: linear-gradient(135deg, #0ea5e9, #6366f1);
+    color: #fff;
+    font-weight: 700;
+}
+
+/* Sidebar */
+:root {
+    /* Sidebar color tokens (edit these to re-theme the sidebar) */
+    --ts-sidebar-bg: #0b1220;
+    --ts-sidebar-border: rgba(255, 255, 255, 0.10);
+    --ts-sidebar-text: rgba(255, 255, 255, 0.78);
+    --ts-sidebar-text-strong: rgba(255, 255, 255, 0.92);
+    --ts-sidebar-hover: rgba(255, 255, 255, 0.08);
+    --ts-sidebar-active-bg: rgba(99, 102, 241, 0.22);
+    --ts-sidebar-active-border: rgba(99, 102, 241, 0.45);
+    --ts-sidebar-mark-bg: #111a2e;
+}
+
+::deep .e-sidebar {
+    border-right: 1px solid var(--ts-sidebar-border);
+    background: var(--ts-sidebar-bg);
+    box-shadow: none;
+}
+
+.ts-sidebar-inner {
+    height: calc(100vh - 56px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* brand stays fixed, nav scrolls */
+}
+
+.ts-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1rem 0.75rem 1rem;
+    border-bottom: 1px solid var(--ts-sidebar-border);
+    cursor: pointer;
+    color: var(--ts-sidebar-text-strong);
+}
+
+.ts-brand-mark {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #0ea5e9, #6366f1);
+    color: #fff;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+}
+
+.ts-brand-name {
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.ts-brand-tag {
+    font-size: 0.75rem;
+    color: var(--ts-sidebar-text);
+}
+
+.ts-nav {
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    flex: 1 1 auto;
+}
+
+::deep .ts-nav-btn {
+    justify-content: flex-start;
+    width: 100%;
+    border-radius: 12px;
+    padding: 0.7rem 0.85rem;
+    background: transparent;
+    color: var(--ts-sidebar-text);
+}
+
+::deep .ts-nav-btn .e-btn-icon {
+    margin-right: 0.65rem;
+    color: var(--ts-sidebar-text);
+}
+
+::deep .ts-nav-btn:not(.ts-nav-btn-active):hover {
+    background: var(--ts-sidebar-hover);
+    color: var(--ts-sidebar-text-strong);
+}
+
+::deep .ts-nav-btn:not(.ts-nav-btn-active):hover .e-btn-icon {
+    color: var(--ts-sidebar-text-strong);
+}
+
+::deep .ts-nav-btn-active {
+    background: var(--ts-sidebar-active-bg);
+    color: var(--ts-sidebar-text-strong);
+    box-shadow: inset 0 0 0 1px var(--ts-sidebar-active-border);
+}
+
+::deep .ts-nav-btn-active .e-btn-icon {
+    color: var(--ts-sidebar-text-strong);
+}
+
+/* sidebar footer removed */
+
+/* Content area */
+.ts-maincontent {
+    min-height: calc(100vh - 56px);
+    height: calc(100vh - 56px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.ts-page-container {
+    padding: 1.25rem;
+}
+
+@media (max-width: 768px) {
+    .ts-search {
+        width: min(360px, 48vw);
+    }
+
+    .ts-page-container {
+        padding: 1rem;
+    }
+}

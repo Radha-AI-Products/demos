@@ -1,0 +1,280 @@
+@page "/portfolio"
+@using Syncfusion.Blazor.Cards
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Data
+@using Syncfusion.Blazor.Charts
+@using TradeStack.Models
+
+<div class="ts-portfolio-shell">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div>
+            <h4 class="mb-1">Portfolio</h4>
+            <div class="text-muted">Holdings, diversification, and allocation breakdown.</div>
+        </div>
+        <div class="d-flex gap-2">
+            <SfButton CssClass="e-outline" Content="Rebalance" IconCss="fa-solid fa-scale-balanced"></SfButton>
+            <SfButton IsPrimary="true" Content="Add Funds" IconCss="fa-solid fa-arrow-down"></SfButton>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        @foreach (var metric in summary)
+        {
+            <div class="col-12 col-md-6 col-xl-3">
+                <SfCard CssClass="ts-card">
+                    <CardContent>
+                        <div class="ts-metric">
+                            <div>
+                                <div class="ts-metric-title">@metric.Title</div>
+                                <div class="ts-metric-value">@metric.ValueText</div>
+                                @if (metric.HasDelta)
+                                {
+                                    <div class="mt-2">
+                                        <span class="ts-pill @(metric.IsPositive ? "ts-pill-pos" : "ts-pill-neg")">
+                                            <i class="fa-solid @(metric.IsPositive ? "fa-arrow-trend-up" : "fa-arrow-trend-down")"></i>
+                                            @metric.DeltaText
+                                        </span>
+                                    </div>
+                                }
+                            </div>
+                            <div class="text-muted">
+                                <i class="@metric.IconCss"></i>
+                            </div>
+                        </div>
+                    </CardContent>
+                </SfCard>
+            </div>
+        }
+    </div>
+
+    <div class="row g-3">
+        <div class="col-12 col-xl-8">
+            <SfCard CssClass="ts-card">
+                <CardContent>
+                    <div class="ts-card-header mb-2">
+                        <div>
+                            <div class="ts-section-title">Holdings</div>
+                            <div class="text-muted small">Sorted, filterable positions with quick per-holding trend.</div>
+                        </div>
+                    </div>
+
+                    <SfGrid TValue="HoldingModel" DataSource="@holdings" AllowSorting="true" AllowFiltering="true" AllowPaging="true" EnableHover="true" Height="520" ID="HoldingsGrid">
+                        <GridFilterSettings Type="Syncfusion.Blazor.Grids.FilterType.Menu"></GridFilterSettings>
+                        <GridPageSettings PageSize="10" PageCount="5"></GridPageSettings>
+                        <GridTemplates>
+                            <DetailTemplate>
+                                @{
+                                    var h = (context as HoldingModel);
+                                }
+                                <div class="ts-mini-chart-wrap">
+                                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                                        <div>
+                                            <div class="fw-semibold">@h!.Symbol</div>
+                                            <div class="text-muted small">Mini performance (demo)</div>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="ts-pill @(h.DayChangePercent >= 0 ? "ts-pill-pos" : "ts-pill-neg")">Day: @h.DayChangePercent.ToString("+0.00;-0.00")%</span>
+                                            <span class="ts-pill @(h.UnrealizedPL >= 0 ? "ts-pill-pos" : "ts-pill-neg")">P/L: @h.UnrealizedPL.ToString("+0.00;-0.00")</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="ts-mini-kv mb-3">
+                                        <div>
+                                            <div class="k">Avg</div>
+                                            <div class="v">@h.AvgPrice.ToString("N2")</div>
+                                        </div>
+                                        <div>
+                                            <div class="k">Qty</div>
+                                            <div class="v">@h.Qty.ToString("N0")</div>
+                                        </div>
+                                        <div>
+                                            <div class="k">Sector</div>
+                                            <div class="v">@h.Sector</div>
+                                        </div>
+                                    </div>
+
+                                    <SfSparkline TValue="KpiSparkPointModel" Height="80px" Width="100%" Fill="#3C78EF" DataSource="@h.Trend" XName="Index" YName="Value" Type="SparklineType.Line">
+                                    </SfSparkline>
+                                </div>
+                            </DetailTemplate>
+                        </GridTemplates>
+
+                        <GridColumns>
+                            <GridColumn Field="@nameof(HoldingModel.Symbol)" HeaderText="Symbol" Width="120" />
+                            <GridColumn Field="@nameof(HoldingModel.AvgPrice)" HeaderText="Avg Price" TextAlign="TextAlign.Right" Format="N2" Width="120" />
+                            <GridColumn Field="@nameof(HoldingModel.Qty)" HeaderText="Qty" TextAlign="TextAlign.Right" Width="100" />
+                            <GridColumn Field="@nameof(HoldingModel.InvestedValue)" HeaderText="Invested" TextAlign="TextAlign.Right" Format="N2" Width="130" />
+                            <GridColumn Field="@nameof(HoldingModel.CurrentValue)" HeaderText="Current" TextAlign="TextAlign.Right" Format="N2" Width="130" />
+
+                            <GridColumn Field="@nameof(HoldingModel.UnrealizedPL)" HeaderText="Unrealized P/L" TextAlign="TextAlign.Right" Width="140">
+                                <Template>
+                                    @{
+                                        var h = (context as HoldingModel);
+                                        var css = h!.UnrealizedPL >= 0 ? "text-success fw-semibold" : "text-danger fw-semibold";
+                                        <span class="@css">@h.UnrealizedPL.ToString("+0.00;-0.00")</span>
+                                    }
+                                </Template>
+                            </GridColumn>
+
+                            <GridColumn Field="@nameof(HoldingModel.DayChangePercent)" HeaderText="Day %" TextAlign="TextAlign.Right" Width="110">
+                                <Template>
+                                    @{
+                                        var h = (context as HoldingModel);
+                                        var css = h!.DayChangePercent >= 0 ? "text-success" : "text-danger";
+                                        <span class="@css">@h.DayChangePercent.ToString("+0.00;-0.00")%</span>
+                                    }
+                                </Template>
+                            </GridColumn>
+
+                            <GridColumn Field="@nameof(HoldingModel.AllocationPercent)" HeaderText="Alloc %" TextAlign="TextAlign.Right" Width="110">
+                                <Template>
+                                    @{
+                                        var h = (context as HoldingModel);
+                                        <span class="text-muted">@h!.AllocationPercent.ToString("N2")%</span>
+                                    }
+                                </Template>
+                            </GridColumn>
+                        </GridColumns>
+                    </SfGrid>
+                </CardContent>
+            </SfCard>
+        </div>
+
+        <div class="col-12 col-xl-4">
+            <div class="row g-3">
+                <div class="col-12">
+                    <SfCard CssClass="ts-card">
+                        <CardContent>
+                            <div class="ts-card-header mb-2">
+                                <div>
+                                    <div class="ts-section-title">Sector allocation</div>
+                                    <div class="text-muted small">Weight by sector</div>
+                                </div>
+                            </div>
+
+                            <SfAccumulationChart Height="320px">
+                                <AccumulationChartSeriesCollection>
+                                    <AccumulationChartSeries DataSource="@sectorSlices" XName="Sector" YName="Weight" InnerRadius="60%" Radius="95%" Type="AccumulationType.Pie" Name="Sectors">
+                                    </AccumulationChartSeries>
+                                </AccumulationChartSeriesCollection>
+                                <AccumulationChartLegendSettings Visible="true" Position="LegendPosition.Bottom"></AccumulationChartLegendSettings>
+                                <AccumulationChartTooltipSettings Enable="true" Format="${point.x} : ${point.y}%"></AccumulationChartTooltipSettings>
+                            </SfAccumulationChart>
+                        </CardContent>
+                    </SfCard>
+                </div>
+
+                <div class="col-12">
+                    <SfCard CssClass="ts-card">
+                        <CardContent>
+                            <div class="ts-card-header mb-2">
+                                <div>
+                                    <div class="ts-section-title">Top holdings</div>
+                                    <div class="text-muted small">Allocation concentration</div>
+                                </div>
+                            </div>
+
+                            <SfChart Height="320px">
+                                <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category"></ChartPrimaryXAxis>
+                                <ChartSeriesCollection>
+                                    <ChartSeries DataSource="@topHoldings" XName="Symbol" YName="Weight" Type="ChartSeriesType.Column" Name="Allocation">
+                                        <ChartMarker>
+                                            <ChartDataLabel Visible="true" Position="Syncfusion.Blazor.Charts.LabelPosition.Middle" />
+                                        </ChartMarker>
+                                    </ChartSeries>
+                                </ChartSeriesCollection>
+                                <ChartTooltipSettings Enable="true" Format="${point.x} : ${point.y}%"></ChartTooltipSettings>
+                            </SfChart>
+                        </CardContent>
+                    </SfCard>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<PortfolioSummaryMetricModel> summary = new();
+    private List<HoldingModel> holdings = new();
+    private List<SectorAllocationSliceModel> sectorSlices = new();
+    private List<TopHoldingBarModel> topHoldings = new();
+
+    protected override void OnInitialized()
+    {
+        holdings = BuildHoldings();
+
+        var totalInvested = holdings.Sum(h => h.InvestedValue);
+        var totalCurrent = holdings.Sum(h => h.CurrentValue);
+        var totalPL = totalCurrent - totalInvested;
+        var totalPLPct = totalInvested <= 0 ? 0 : (totalPL / totalInvested) * 100;
+
+        var top3 = holdings.OrderByDescending(h => h.AllocationPercent).Take(3).Sum(h => h.AllocationPercent);
+        var diversificationScore = Math.Min(100, Math.Max(0, 100 - (top3 * 0.75)));
+
+        summary = new()
+        {
+            new() { Title = "Total Investment", ValueText = totalInvested.ToString("N0"), HasDelta = false, IconCss = "fa-solid fa-wallet" },
+            new() { Title = "Current Value", ValueText = totalCurrent.ToString("N0"), HasDelta = true, DeltaText = totalPLPct.ToString("+0.00;-0.00") + "%", IsPositive = totalPL >= 0, IconCss = "fa-solid fa-chart-line" },
+            new() { Title = "Total Gain/Loss", ValueText = totalPL.ToString("+0;-0"), HasDelta = true, DeltaText = totalPL.ToString("+0;-0"), IsPositive = totalPL >= 0, IconCss = "fa-solid fa-arrow-trend-up" },
+            new() { Title = "Diversification Score", ValueText = diversificationScore.ToString("N0") + "/100", HasDelta = true, DeltaText = "Top 3: " + top3.ToString("N1") + "%", IsPositive = diversificationScore >= 70, IconCss = "fa-solid fa-layer-group" },
+        };
+
+        sectorSlices = holdings
+            .GroupBy(h => h.Sector)
+            .Select(g => new SectorAllocationSliceModel { Sector = g.Key, Weight = g.Sum(x => x.AllocationPercent) })
+            .OrderByDescending(x => x.Weight)
+            .ToList();
+
+        topHoldings = holdings
+            .OrderByDescending(h => h.AllocationPercent)
+            .Take(6)
+            .Select(h => new TopHoldingBarModel { Symbol = h.Symbol, Weight = h.AllocationPercent })
+            .ToList();
+    }
+
+    private List<HoldingModel> BuildHoldings()
+    {
+        var raw = new List<HoldingModel>
+        {
+            new() { Id = 1, Symbol = "HDFCBANK", AvgPrice = 1460.20, Qty = 50, CurrentValue = 76450, Sector = "Financials", DayChangePercent = 0.62 },
+            new() { Id = 2, Symbol = "RELIANCE", AvgPrice = 2475.10, Qty = 25, CurrentValue = 71625, Sector = "Energy", DayChangePercent = -0.31 },
+            new() { Id = 3, Symbol = "TCS", AvgPrice = 3560.00, Qty = 15, CurrentValue = 54150, Sector = "IT", DayChangePercent = 0.18 },
+            new() { Id = 4, Symbol = "INFY", AvgPrice = 1525.40, Qty = 30, CurrentValue = 47820, Sector = "IT", DayChangePercent = -0.42 },
+            new() { Id = 5, Symbol = "ITC", AvgPrice = 415.25, Qty = 120, CurrentValue = 52920, Sector = "Consumer", DayChangePercent = 0.11 },
+            new() { Id = 6, Symbol = "LT", AvgPrice = 2860.00, Qty = 10, CurrentValue = 31200, Sector = "Industrials", DayChangePercent = 0.74 },
+            new() { Id = 7, Symbol = "SBIN", AvgPrice = 635.70, Qty = 80, CurrentValue = 52880, Sector = "Financials", DayChangePercent = -0.09 },
+            new() { Id = 8, Symbol = "SUNPHARMA", AvgPrice = 1230.00, Qty = 18, CurrentValue = 25560, Sector = "Healthcare", DayChangePercent = 0.27 },
+        };
+
+        foreach (var h in raw)
+        {
+            h.InvestedValue = h.AvgPrice * h.Qty;
+            h.UnrealizedPL = h.CurrentValue - h.InvestedValue;
+            h.Trend = BuildTrend(h.Id);
+        }
+
+        var total = raw.Sum(x => x.CurrentValue);
+        foreach (var h in raw)
+        {
+            h.AllocationPercent = total <= 0 ? 0 : (h.CurrentValue / total) * 100;
+        }
+
+        return raw.OrderByDescending(h => h.AllocationPercent).ToList();
+    }
+
+    private List<KpiSparkPointModel> BuildTrend(int seed)
+    {
+        var r = new Random(seed * 97);
+        var value = 100.0 + r.NextDouble() * 20;
+        var points = new List<KpiSparkPointModel>();
+
+        foreach (var i in Enumerable.Range(1, 18))
+        {
+            value += (r.NextDouble() - 0.45) * 6.0;
+            points.Add(new KpiSparkPointModel { Index = i, Value = Math.Round(value, 2) });
+        }
+
+        return points;
+    }
+}

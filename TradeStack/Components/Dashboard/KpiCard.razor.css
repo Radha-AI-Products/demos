@@ -1,0 +1,17 @@
+::deep .ts-kpi-card {
+    border-radius: 14px;
+    border: 1px solid rgba(0,0,0,.06);
+    box-shadow: 0 8px 22px rgba(16, 24, 40, .06);
+}
+
+.ts-kpi-spark {
+    width: 140px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+::deep .ts-kpi-card .e-card-content {
+    padding: 1rem;
+}

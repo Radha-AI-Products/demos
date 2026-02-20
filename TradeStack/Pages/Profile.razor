@@ -1,0 +1,292 @@
+@page "/profile"
+
+@using TradeStack.Models
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.InPlaceEditor
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.Navigations
+@using Syncfusion.Blazor.Popups
+@using Syncfusion.Blazor.BarcodeGenerator
+
+<div class="container-fluid px-0">
+    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3">
+        <div>
+            <h3 class="mb-1">Profile</h3>
+            <div class="text-muted">Manage your account, security, and preferences.</div>
+        </div>
+        <div class="d-flex gap-2">
+            <SfButton CssClass="e-outline" IconCss="fa-solid fa-rotate" Content="Reset" OnClick="OnReset"></SfButton>
+            <SfButton IsPrimary="true" IconCss="fa-solid fa-floppy-disk" Content="Save" OnClick="OnSave"></SfButton>
+        </div>
+    </div>
+
+    <SfTab CssClass="ts-profile-tabs">
+        <TabItems>
+            <TabItem>
+                <HeaderTemplate>
+                    <span><i class="fa-solid fa-user me-2"></i>Account</span>
+                </HeaderTemplate>
+                <ContentTemplate>
+                    <div class="ts-profile-grid">
+                        <div class="card shadow-sm ts-profile-card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="ts-profile-avatar" aria-label="User avatar">@GetInitials()</div>
+                                    <div class="min-w-0">
+                                        <div class="fw-semibold fs-5 text-truncate">@vm.FullName</div>
+                                        <div class="ts-profile-muted text-truncate">@vm.Email</div>
+                                    </div>
+                                </div>
+
+                                <hr class="my-3" />
+
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <div class="small text-uppercase ts-profile-muted">Full name</div>
+                                        <SfInPlaceEditor CssClass="ts-profile-inplace" @bind-Value="vm.FullName" TValue="string" SubmitOnEnter="true" EditableOn="EditableType.Click">
+                                            <EditorComponent>
+                                                <SfTextBox @bind-Value="vm.FullName" Placeholder="Full name" ShowClearButton="true"></SfTextBox>
+                                            </EditorComponent>
+                                        </SfInPlaceEditor>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="small text-uppercase ts-profile-muted">Email</div>
+                                        <SfInPlaceEditor CssClass="ts-profile-inplace" @bind-Value="vm.Email" TValue="string" SubmitOnEnter="true" EditableOn="EditableType.Click">
+                                            <EditorComponent>
+                                                <SfTextBox @bind-Value="vm.Email" Placeholder="Email" ShowClearButton="true" Type="Syncfusion.Blazor.Inputs.InputType.Email"></SfTextBox>
+                                            </EditorComponent>
+                                        </SfInPlaceEditor>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="small text-uppercase ts-profile-muted">Phone</div>
+                                        <SfInPlaceEditor CssClass="ts-profile-inplace" @bind-Value="vm.Phone" TValue="string" SubmitOnEnter="true" EditableOn="EditableType.Click">
+                                            <EditorComponent>
+                                                <SfTextBox @bind-Value="vm.Phone" Placeholder="Phone" ShowClearButton="true" Type="Syncfusion.Blazor.Inputs.InputType.Tel"></SfTextBox>
+                                            </EditorComponent>
+                                        </SfInPlaceEditor>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="small text-uppercase ts-profile-muted">Organization</div>
+                                        <SfInPlaceEditor CssClass="ts-profile-inplace" @bind-Value="vm.Organization" TValue="string" SubmitOnEnter="true" EditableOn="EditableType.Click">
+                                            <EditorComponent>
+                                                <SfTextBox @bind-Value="vm.Organization" Placeholder="Organization" ShowClearButton="true"></SfTextBox>
+                                            </EditorComponent>
+                                        </SfInPlaceEditor>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card shadow-sm ts-profile-card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center justify-content-between gap-2">
+                                    <div>
+                                        <div class="fw-semibold">Account details</div>
+                                        <div class="ts-profile-muted">Tap any field to edit inline.</div>
+                                    </div>
+                                    <span class="badge text-bg-light">@DateTime.Now.ToString("MMM dd, yyyy")</span>
+                                </div>
+
+                                <hr class="my-3" />
+
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-6">
+                                        <div class="small text-uppercase ts-profile-muted">Default currency</div>
+                                        <SfDropDownList TValue="string" TItem="CurrencyOptionModel" DataSource="currencyOptions" Placeholder="Currency" @bind-Value="vm.DefaultCurrency" Width="100%">
+                                            <DropDownListFieldSettings Text="Name" Value="Code"></DropDownListFieldSettings>
+                                        </SfDropDownList>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <div class="small text-uppercase ts-profile-muted">Time zone</div>
+                                        <SfDropDownList TValue="string" TItem="TimeZoneOptionModel" DataSource="timeZoneOptions" Placeholder="Time zone" @bind-Value="vm.TimeZone" Width="100%">
+                                            <DropDownListFieldSettings Text="Name" Value="Id"></DropDownListFieldSettings>
+                                        </SfDropDownList>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="small text-uppercase ts-profile-muted">Preferences</div>
+                                        <div class="d-flex align-items-center justify-content-between gap-3 p-3 rounded-3" style="background: rgba(0,0,0,.03);">
+                                            <div class="min-w-0">
+                                                <div class="fw-semibold">Market notifications</div>
+                                                <div class="ts-profile-muted">Get alerts on watchlist price moves and order fills.</div>
+                                            </div>
+                                            <SfSwitch @bind-Checked="marketNotifications" OnLabel="On" OffLabel="Off"></SfSwitch>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-end gap-2 mt-3">
+                                    <SfButton CssClass="e-outline" IconCss="fa-solid fa-arrow-up-right-from-square" Content="Manage plan" OnClick="OnManagePlan"></SfButton>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </ContentTemplate>
+            </TabItem>
+
+            <TabItem>
+                <HeaderTemplate>
+                    <span><i class="fa-solid fa-shield-halved me-2"></i>Security</span>
+                </HeaderTemplate>
+                <ContentTemplate>
+                    <div class="ts-profile-grid">
+                        <div class="card shadow-sm ts-profile-card">
+                            <div class="card-body">
+                                <div class="fw-semibold">Password change</div>
+                                <div class="ts-profile-muted">Choose a strong password you don’t use elsewhere.</div>
+
+                                <hr class="my-3" />
+
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <div class="small text-uppercase ts-profile-muted">Current password</div>
+                                        <SfTextBox @bind-Value="currentPassword" Type="Syncfusion.Blazor.Inputs.InputType.Password" Placeholder="Current password" Width="100%"></SfTextBox>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <div class="small text-uppercase ts-profile-muted">New password</div>
+                                        <SfTextBox @bind-Value="newPassword" Type="Syncfusion.Blazor.Inputs.InputType.Password" Placeholder="New password" Width="100%"></SfTextBox>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <div class="small text-uppercase ts-profile-muted">Confirm new password</div>
+                                        <SfTextBox @bind-Value="confirmPassword" Type="Syncfusion.Blazor.Inputs.InputType.Password" Placeholder="Confirm new password" Width="100%"></SfTextBox>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-end gap-2 mt-3">
+                                    <SfButton CssClass="e-outline" IconCss="fa-solid fa-xmark" Content="Clear" OnClick="OnClearPassword"></SfButton>
+                                    <SfButton IsPrimary="true" IconCss="fa-solid fa-key" Content="Update password" OnClick="OnUpdatePassword"></SfButton>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card shadow-sm ts-profile-card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center justify-content-between gap-3">
+                                    <div class="min-w-0">
+                                        <div class="fw-semibold">Two-factor authentication (2FA)</div>
+                                        <div class="ts-profile-muted">Add an extra layer of protection to your account.</div>
+                                    </div>
+                                    <SfSwitch @bind-Checked="vm.TwoFactorEnabled" OnLabel="On" OffLabel="Off"></SfSwitch>
+                                </div>
+
+                                <hr class="my-3" />
+
+                                <div class="p-3 rounded-3" style="background: rgba(0,0,0,.03);">
+                                    <div class="d-flex align-items-start justify-content-between gap-3">
+                                        <div class="min-w-0">
+                                            <div class="fw-semibold">Authenticator app</div>
+                                            <div class="ts-profile-muted">Use a TOTP app (Google Authenticator, Authy, 1Password).</div>
+                                        </div>
+                                        <SfButton CssClass="e-outline" IconCss="fa-solid fa-qrcode" Content="Show QR" OnClick="OnShowQr"></SfButton>
+
+                                    <SfDialog Width="360px" IsModal="true" ShowCloseIcon="true" @bind-Visible="isQrDialogVisible" Header="Set up authenticator app">
+                                        <DialogTemplates>
+                                            <Content>
+                                                <div class="ts-qr-wrap">
+                                                    <div class="ts-profile-muted mb-2">Scan this QR with your authenticator app.</div>
+                                                    <div class="d-flex justify-content-center">
+                                                        <SfQRCodeGenerator Width="220px" Height="220px" Value="@qrValue"></SfQRCodeGenerator>
+                                                    </div>
+                                                    <div class="mt-3">
+                                                        <div class="small text-uppercase ts-profile-muted">Setup key</div>
+                                                        <div class="ts-qr-key">@qrValue</div>
+                                                    </div>
+                                                </div>
+                                            </Content>
+                                        </DialogTemplates>
+                                    </SfDialog>
+                                    </div>
+
+                                    <div class="d-flex align-items-start justify-content-between gap-3 mt-3">
+                                        <div class="min-w-0">
+                                            <div class="fw-semibold">Backup codes</div>
+                                            <div class="ts-profile-muted">Generate one-time codes in case you lose device access.</div>
+                                        </div>
+                                        <SfButton CssClass="e-outline" IconCss="fa-solid fa-ticket" Content="Generate" OnClick="OnGenerateCodes"></SfButton>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-end gap-2 mt-3">
+                                    <SfButton CssClass="e-outline" IconCss="fa-solid fa-right-from-bracket" Content="Sign out of all devices" OnClick="OnSignOutAll"></SfButton>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </ContentTemplate>
+            </TabItem>
+        </TabItems>
+    </SfTab>
+</div>
+
+@code {
+    private ProfileViewModel vm = new();
+
+    private bool marketNotifications = true;
+
+    private string currentPassword = string.Empty;
+    private string newPassword = string.Empty;
+    private string confirmPassword = string.Empty;
+
+    private List<CurrencyOptionModel> currencyOptions = new()
+    {
+        new() { Code = "USD", Name = "USD — US Dollar" },
+        new() { Code = "EUR", Name = "EUR — Euro" },
+        new() { Code = "GBP", Name = "GBP — British Pound" },
+        new() { Code = "JPY", Name = "JPY — Japanese Yen" }
+    };
+
+    private List<TimeZoneOptionModel> timeZoneOptions = new()
+    {
+        new() { Id = "America/New_York", Name = "(UTC-05:00) New York" },
+        new() { Id = "America/Chicago", Name = "(UTC-06:00) Chicago" },
+        new() { Id = "America/Los_Angeles", Name = "(UTC-08:00) Los Angeles" },
+        new() { Id = "Europe/London", Name = "(UTC+00:00) London" }
+    };
+
+    private string GetInitials()
+    {
+        var parts = (vm.FullName ?? string.Empty).Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var first = parts.Length > 0 ? parts[0][0].ToString() : "T";
+        var second = parts.Length > 1 ? parts[^1][0].ToString() : "S";
+        return (first + second).ToUpperInvariant();
+    }
+
+    private void OnSave(MouseEventArgs args)
+    {
+        // Placeholder: wire to persistence later.
+    }
+
+    private void OnReset(MouseEventArgs args)
+    {
+        vm = new ProfileViewModel();
+        marketNotifications = true;
+        OnClearPassword(args);
+    }
+
+    private void OnClearPassword(MouseEventArgs args)
+    {
+        currentPassword = string.Empty;
+        newPassword = string.Empty;
+        confirmPassword = string.Empty;
+    }
+
+    private void OnUpdatePassword(MouseEventArgs args)
+    {
+        // Placeholder: validate + call backend.
+        OnClearPassword(args);
+    }
+
+    private bool isQrDialogVisible = false;
+    private string qrValue = "otpauth://totp/TradeStack:trader@tradestack.app?secret=JBSWY3DPEHPK3PXP&issuer=TradeStack";
+
+    private void OnManagePlan(MouseEventArgs args) { }
+
+    private void OnShowQr(MouseEventArgs args)
+    {
+        isQrDialogVisible = true;
+    }
+
+    private void OnGenerateCodes(MouseEventArgs args) { }
+    private void OnSignOutAll(MouseEventArgs args) { }
+}

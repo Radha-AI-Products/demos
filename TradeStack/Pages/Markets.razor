@@ -1,0 +1,202 @@
+@page "/markets"
+
+@using TradeStack.Models
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Cards
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Inputs
+
+<div class="ts-markets-page">
+    <div class="ts-markets-header mb-3">
+        <div>
+            <h2 class="ts-markets-title">Markets</h2>
+            <div class="ts-markets-subtitle">Browse quotes, filter by exchange/sector, and action symbols.</div>
+        </div>
+
+        <div class="ts-filter-row">
+            <SfDropDownList CssClass="ts-filter-ddl" TItem="FilterOptionModel" TValue="string" DataSource="@exchangeOptions" Placeholder="Exchange" @bind-Value="selectedExchange">
+                <DropDownListFieldSettings Text="Text" Value="Value"></DropDownListFieldSettings>
+            </SfDropDownList>
+
+            <SfDropDownList CssClass="ts-filter-ddl" TItem="FilterOptionModel" TValue="string" DataSource="@sectorOptions" Placeholder="Sector" @bind-Value="selectedSector">
+                <DropDownListFieldSettings Text="Text" Value="Value"></DropDownListFieldSettings>
+            </SfDropDownList>
+
+            <div class="position-relative">
+                <SfTextBox CssClass="ts-filter-search" Placeholder="Search symbol or company" ShowClearButton="true" Input="OnSearchInput"></SfTextBox>
+                <span class="position-absolute top-50 end-0 translate-middle-y me-3 text-muted">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="ts-index-grid mb-3">
+        @foreach (var idx in indexes)
+        {
+            <div class="ts-index-card">
+                <SfCard CssClass="shadow-sm">
+                    <CardHeader Title="@idx.Name" SubTitle="@idx.Ticker"></CardHeader>
+                    <CardContent>
+                        <div class="d-flex align-items-end justify-content-between">
+                            <div>
+                                <div class="ts-index-value">@idx.Value.ToString("N2")</div>
+                                <div class="ts-change @(idx.ChangePercent >= 0 ? "pos" : "neg")">
+                                    @(idx.ChangePercent >= 0 ? "+" : "")@idx.ChangePercent.ToString("0.00")%  
+                                    <span class="ms-1">(@(idx.ChangeValue >= 0 ? "+" : "")@idx.ChangeValue.ToString("N2"))</span>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <div class="ts-index-ticker">Today</div>
+                                <div class="mt-1">
+                                    <SfButton CssClass="e-small e-outline" IconCss="fa-solid fa-arrow-trend-up" Content="View"></SfButton>
+                                </div>
+                            </div>
+                        </div>
+                    </CardContent>
+                </SfCard>
+            </div>
+        }
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <SfGrid @ref="marketGrid" DataSource="@filteredRows" TValue="MarketRowModel"
+                    AllowPaging="true" AllowSorting="true" AllowFiltering="true" EnableHover="true">
+                <GridPageSettings PageSize="12"></GridPageSettings>
+                <GridColumns>
+                    <GridColumn Field="@nameof(MarketRowModel.Symbol)" HeaderText="Symbol" Width="120" />
+                    <GridColumn Field="@nameof(MarketRowModel.Company)" HeaderText="Company" Width="220" ClipMode="ClipMode.EllipsisWithTooltip" />
+                    <GridColumn Field="@nameof(MarketRowModel.LastPrice)" HeaderText="Last Price" Width="130" TextAlign="TextAlign.Right" Format="N2" />
+                    <GridColumn Field="@nameof(MarketRowModel.ChangePercent)" HeaderText="Change %" Width="120" TextAlign="TextAlign.Right" Format="N2" />
+                    <GridColumn Field="@nameof(MarketRowModel.Volume)" HeaderText="Volume" Width="130" TextAlign="TextAlign.Right" Format="N0" />
+                    <GridColumn Field="@nameof(MarketRowModel.MarketCap)" HeaderText="Market Cap" Width="150" TextAlign="TextAlign.Right" Format="N2" />
+                    <GridColumn HeaderText="52W High / Low" Width="170" AllowFiltering="false" AllowSorting="false">
+                        <Template>
+                            @{
+                                var row = context as MarketRowModel;
+                                <div class="text-nowrap">
+                                    <span class="fw-semibold">@row.Week52High.ToString("N2")</span>
+                                    <span class="text-muted"> / </span>
+                                    <span>@row.Week52Low.ToString("N2")</span>
+                                </div>
+                            }
+                        </Template>
+                        <FilterTemplate>
+                            <span></span>
+                        </FilterTemplate>
+                    </GridColumn>
+                    <GridColumn HeaderText="Actions" Width="190" AllowFiltering="false" AllowSorting="false">
+                        <Template>
+                            @{
+                                var row = context as MarketRowModel;
+                                <div class="d-flex gap-2 justify-content-end">
+                                    <SfButton CssClass="e-small e-outline" IconCss="fa-solid fa-star" Content="Watch" OnClick="@(() => AddToWatchlist(row))"></SfButton>
+                                    <SfButton CssClass="e-small e-primary" IconCss="fa-solid fa-bolt" Content="Trade" OnClick="@(() => Trade(row))"></SfButton>
+                                </div>
+                            }
+                        </Template>
+                        <FilterTemplate>
+                            <span></span>
+                        </FilterTemplate>
+                    </GridColumn>
+                </GridColumns>
+            </SfGrid>
+        </div>
+    </div>
+</div>
+
+@code {
+    private SfGrid<MarketRowModel>? marketGrid;
+
+    private string selectedExchange = "ALL";
+    private string selectedSector = "ALL";
+    private string searchText = string.Empty;
+
+    private readonly List<FilterOptionModel> exchangeOptions = new()
+    {
+        new() { Value = "ALL", Text = "All Exchanges" },
+        new() { Value = "NSE", Text = "NSE" },
+        new() { Value = "BSE", Text = "BSE" },
+        new() { Value = "US", Text = "US" }
+    };
+
+    private readonly List<FilterOptionModel> sectorOptions = new()
+    {
+        new() { Value = "ALL", Text = "All Sectors" },
+        new() { Value = "Banking", Text = "Banking" },
+        new() { Value = "IT", Text = "IT" },
+        new() { Value = "Energy", Text = "Energy" },
+        new() { Value = "FMCG", Text = "FMCG" },
+        new() { Value = "Auto", Text = "Auto" }
+    };
+
+    private readonly List<MarketIndexModel> indexes = new()
+    {
+        new() { Name = "Nifty 50", Ticker = "NIFTY", Value = 22112.45, ChangePercent = 0.62, ChangeValue = 136.80 },
+        new() { Name = "Sensex", Ticker = "SENSEX", Value = 73120.90, ChangePercent = -0.21, ChangeValue = -151.30 },
+        new() { Name = "S&P 500", Ticker = "SPX", Value = 5032.70, ChangePercent = 0.34, ChangeValue = 17.20 }
+    };
+
+    private readonly List<MarketRowModel> allRows = new()
+    {
+        new() { Id=1, Exchange="NSE", Sector="Banking", Symbol="HDFCBANK", Company="HDFC Bank Ltd.", LastPrice=1421.35, ChangePercent=0.88, Volume=28451230, MarketCap=1095234.50, Week52High=1725.00, Week52Low=1363.55 },
+        new() { Id=2, Exchange="NSE", Sector="IT", Symbol="INFY", Company="Infosys Ltd.", LastPrice=1589.10, ChangePercent=-0.44, Volume=12188340, MarketCap=662110.20, Week52High=1739.00, Week52Low=1215.20 },
+        new() { Id=3, Exchange="BSE", Sector="Energy", Symbol="RELIANCE", Company="Reliance Industries", LastPrice=2899.55, ChangePercent=0.19, Volume=9402210, MarketCap=1965210.75, Week52High=3024.90, Week52Low=2141.00 },
+        new() { Id=4, Exchange="NSE", Sector="FMCG", Symbol="ITC", Company="ITC Ltd.", LastPrice=414.80, ChangePercent=1.06, Volume=35400210, MarketCap=514300.35, Week52High=499.60, Week52Low=379.00 },
+        new() { Id=5, Exchange="US", Sector="IT", Symbol="AAPL", Company="Apple Inc.", LastPrice=187.22, ChangePercent=0.73, Volume=57655120, MarketCap=2895000.00, Week52High=199.62, Week52Low=164.08 },
+        new() { Id=6, Exchange="US", Sector="Energy", Symbol="XOM", Company="Exxon Mobil", LastPrice=104.11, ChangePercent=-0.58, Volume=22100410, MarketCap=412300.00, Week52High=120.70, Week52Low=91.64 },
+        new() { Id=7, Exchange="US", Sector="Auto", Symbol="TSLA", Company="Tesla, Inc.", LastPrice=191.72, ChangePercent=1.42, Volume=90200310, MarketCap=610400.00, Week52High=299.29, Week52Low=138.80 },
+        new() { Id=8, Exchange="BSE", Sector="Auto", Symbol="TATAMOTORS", Company="Tata Motors Ltd.", LastPrice=944.30, ChangePercent=-0.12, Volume=18188210, MarketCap=318900.10, Week52High=1017.50, Week52Low=502.10 },
+        new() { Id=9, Exchange="NSE", Sector="Banking", Symbol="ICICIBANK", Company="ICICI Bank Ltd.", LastPrice=1049.60, ChangePercent=0.55, Volume=19200110, MarketCap=742650.40, Week52High=1117.45, Week52Low=864.15 },
+        new() { Id=10, Exchange="NSE", Sector="IT", Symbol="TCS", Company="Tata Consultancy Services", LastPrice=3991.00, ChangePercent=0.09, Volume=3322110, MarketCap=1456200.00, Week52High=4254.00, Week52Low=3070.00 }
+    };
+
+    private IEnumerable<MarketRowModel> filteredRows => allRows.Where(MatchesFilters);
+
+    private bool MatchesFilters(MarketRowModel row)
+    {
+        if (selectedExchange != "ALL" && !string.Equals(row.Exchange, selectedExchange, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        if (selectedSector != "ALL" && !string.Equals(row.Sector, selectedSector, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        if (!string.IsNullOrWhiteSpace(searchText))
+        {
+            var term = searchText.Trim();
+            var hit = row.Symbol.Contains(term, StringComparison.OrdinalIgnoreCase)
+                      || row.Company.Contains(term, StringComparison.OrdinalIgnoreCase);
+            if (!hit)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private async Task OnSearchInput(InputEventArgs args)
+    {
+        searchText = args.Value ?? string.Empty;
+        if (marketGrid != null)
+        {
+            await marketGrid.Refresh(true);
+        }
+    }
+
+    private void AddToWatchlist(MarketRowModel? row)
+    {
+        // Placeholder for watchlist add flow.
+    }
+
+    private void Trade(MarketRowModel? row)
+    {
+        // Placeholder for trade ticket navigation/dialog.
+    }
+}

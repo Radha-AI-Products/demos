@@ -1,0 +1,97 @@
+﻿@inherits LayoutComponentBase
+@using Syncfusion.Blazor.Navigations
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Inputs
+@inject NavigationManager Nav
+
+<div class="ts-shell">
+    <SfAppBar CssClass="ts-appbar" ColorMode="AppBarColor.Light" IsSticky="true">
+        <SfButton CssClass="e-inherit ts-appbar-btn" IconCss="fa-solid fa-bars" OnClick="ToggleSidebar" aria-label="Toggle navigation"></SfButton>
+
+        <div class="ts-search">
+            <SfTextBox @bind-Value="globalSearch" Placeholder="Search stocks, orders..." ShowClearButton="true"></SfTextBox>
+        </div>
+
+        <AppBarSpacer></AppBarSpacer>
+
+        <div class="ts-appbar-actions">
+            <div class="ts-notification">
+                <SfButton CssClass="e-inherit ts-appbar-btn" IconCss="fa-regular fa-bell" OnClick="OnNotifications" aria-label="Notifications"></SfButton>
+                <span class="e-badge e-badge-danger e-badge-notification e-badge-overlap">3</span>
+            </div>
+
+            <SfButton CssClass="e-inherit ts-appbar-btn" OnClick="GoToProfile" aria-label="Open profile">
+                <span class="e-avatar e-avatar-circle e-avatar-small ts-avatar">TS</span>
+            </SfButton>
+        </div>
+    </SfAppBar>
+
+    <SfSidebar ID="TradeStackSidebar" Type="SidebarType.Push" Width="260px" Target=".ts-maincontent" EnablePersistence="true" @bind-IsOpen="sidebarOpen">
+        <ChildContent>
+            <div class="ts-sidebar-inner">
+                <div class="ts-brand" @onclick="GoHome" role="button" tabindex="0" title="TradeStack">
+                    <span class="ts-brand-mark">TS</span>
+                    <div class="ts-brand-text">
+                        <div class="ts-brand-name">TradeStack</div>
+                        <div class="ts-brand-tag">Fintech Console</div>
+                    </div>
+                </div>
+
+                <div class="ts-nav" role="navigation" aria-label="Primary">
+                    @foreach (var item in navItems)
+                    {
+                        <SfButton CssClass="@GetNavCss(item)" IconCss="@item.IconCss" Content="@item.Text" OnClick="@(() => NavigateTo(item.Href))" aria-label="@item.Text"></SfButton>
+                    }
+                </div>
+
+            </div>
+        </ChildContent>
+    </SfSidebar>
+
+    <main class="ts-maincontent">
+        <div class="ts-page-container">
+            @Body
+        </div>
+    </main>
+</div>
+
+@code {
+    private bool sidebarOpen = true;
+    private string globalSearch;
+
+    private readonly List<NavItem> navItems = new()
+    {
+        new("Dashboard", "/", "fa-solid fa-gauge"),
+        new("Markets", "/markets", "fa-solid fa-chart-line"),
+        new("Portfolio", "/portfolio", "fa-solid fa-briefcase"),
+        new("Orders", "/orders", "fa-solid fa-receipt"),
+        new("Analytics", "/analytics", "fa-solid fa-chart-pie"),
+        new("Watchlist", "/watchlist", "fa-solid fa-star"),
+        new("Profile", "/profile", "fa-solid fa-user"),
+    };
+
+    private void ToggleSidebar(MouseEventArgs args) => sidebarOpen = !sidebarOpen;
+
+    private void NavigateTo(string href)
+    {
+        Nav.NavigateTo(href);
+    }
+
+    private void GoHome(MouseEventArgs _) => Nav.NavigateTo("/");
+
+    private void GoToProfile(MouseEventArgs _) => Nav.NavigateTo("/profile");
+
+    private void OnNotifications(MouseEventArgs _)
+    {
+        // Placeholder for notifications panel/dialog.
+    }
+
+    private string GetNavCss(NavItem item)
+    {
+        var isActive = Nav.Uri.EndsWith(item.Href.TrimEnd('/'), StringComparison.OrdinalIgnoreCase)
+                       || (item.Href == "/" && Nav.Uri.TrimEnd('/').EndsWith(Nav.BaseUri.TrimEnd('/'), StringComparison.OrdinalIgnoreCase));
+        return isActive ? "ts-nav-btn ts-nav-btn-active" : "ts-nav-btn";
+    }
+
+    private record NavItem(string Text, string Href, string IconCss);
+}

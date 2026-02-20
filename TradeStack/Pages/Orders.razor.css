@@ -1,0 +1,113 @@
+.ts-orders-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.ts-orders-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.ts-orders-title {
+    margin: 0;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+}
+
+.ts-orders-subtitle {
+    color: var(--bs-secondary-color);
+    font-size: 0.925rem;
+}
+
+.ts-orders-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.ts-orders-content {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+.ts-orders-tabwrap {
+    border-radius: 14px;
+}
+
+::deep .ts-orders-tabwrap .e-tab .e-tab-header {
+    border-radius: 14px 14px 0 0;
+}
+
+::deep .ts-orders-grid .e-grid,
+::deep .ts-orders-grid.e-grid {
+    border-radius: 14px;
+}
+
+.ts-status {
+    font-weight: 650;
+}
+
+.ts-status-sub {
+    color: var(--bs-secondary-color);
+    font-size: 0.85rem;
+}
+
+.ts-order-drawer {
+    padding: 1rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.ts-drawer-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.ts-drawer-title {
+    margin: 0;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+}
+
+.ts-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+@media (max-width: 992px) {
+    .ts-form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+::deep .ts-input {
+    width: 100%;
+}
+
+.ts-margin-card {
+    border-radius: 14px;
+}
+
+.ts-drawer-footer {
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.ts-drawer-footer .ts-hint {
+    color: var(--bs-secondary-color);
+    font-size: 0.9rem;
+}

@@ -1,0 +1,258 @@
+@page "/analytics"
+@using Syncfusion.Blazor.Cards
+@using Syncfusion.Blazor.Charts
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.HeatMap
+@using TradeStack.Models
+
+<div class="ts-analytics-shell">
+    <div class="ts-analytics-header mb-3">
+        <div>
+            <h4 class="mb-1">Analytics</h4>
+            <div class="text-muted">Performance, risk, and trade behavior insights.</div>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <span class="ts-chip"><i class="fa-regular fa-calendar"></i> Last 12 months</span>
+            <span class="ts-chip"><i class="fa-solid fa-shield-halved"></i> Risk-adjusted</span>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-1">
+        @foreach (var metric in metrics)
+        {
+            <div class="col-12 col-md-6 col-xl-3">
+                <SfCard CssClass="ts-metric-card">
+                    <CardContent>
+                        <div class="ts-metric-row">
+                            <div>
+                                <div class="ts-metric-title">@metric.Title</div>
+                                <div class="ts-metric-value">@metric.ValueText</div>
+                                <div class="ts-metric-delta @GetDeltaCss(metric.IsPositive)">@metric.DeltaText</div>
+                            </div>
+                            <div class="ts-metric-icon"><i class="@metric.IconCss"></i></div>
+                        </div>
+                    </CardContent>
+                </SfCard>
+            </div>
+        }
+    </div>
+
+    <div class="row g-3">
+        <div class="col-12 col-xl-8">
+            <SfCard CssClass="ts-chart-card">
+                <CardContent>
+                    <div class="d-flex align-items-start justify-content-between gap-2 flex-wrap mb-2">
+                        <div>
+                            <div class="ts-section-title">Portfolio vs Index</div>
+                            <div class="text-muted small">Equity curve comparison</div>
+                        </div>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <span class="ts-chip"><i class="fa-solid fa-chart-line"></i> Drawdown-aware</span>
+                        </div>
+                    </div>
+
+                    <div class="ts-chart-wrap">
+                        <SfChart Height="320px">
+                            <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.DateTime"></ChartPrimaryXAxis>
+                            <ChartTooltipSettings Enable="true" Shared="true"></ChartTooltipSettings>
+                            <ChartSeriesCollection>
+                                <ChartSeries Name="Portfolio" DataSource="@equity" XName="Date" YName="Portfolio" Type="ChartSeriesType.Line"></ChartSeries>
+                                <ChartSeries Name="Index" DataSource="@equity" XName="Date" YName="Index" Type="ChartSeriesType.Line"></ChartSeries>
+                            </ChartSeriesCollection>
+                        </SfChart>
+                    </div>
+                </CardContent>
+            </SfCard>
+        </div>
+
+        <div class="col-12 col-xl-4">
+            <SfCard CssClass="ts-chart-card">
+                <CardContent>
+                    <div class="d-flex align-items-start justify-content-between gap-2 flex-wrap mb-2">
+                        <div>
+                            <div class="ts-section-title">Monthly returns</div>
+                            <div class="text-muted small">Distribution of P/L by month</div>
+                        </div>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <span class="ts-chip"><i class="fa-solid fa-layer-group"></i> 12 bars</span>
+                        </div>
+                    </div>
+
+                    <div class="ts-chart-wrap-sm">
+                        <SfChart Height="280px">
+                            <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category"></ChartPrimaryXAxis>
+                            <ChartTooltipSettings Enable="true"></ChartTooltipSettings>
+                            <ChartSeriesCollection>
+                                <ChartSeries Name="Return %" DataSource="@monthly" XName="Month" YName="ReturnPct" Type="ChartSeriesType.Column"></ChartSeries>
+                            </ChartSeriesCollection>
+                        </SfChart>
+                    </div>
+                </CardContent>
+            </SfCard>
+        </div>
+
+        <div class="col-12">
+            <SfCard CssClass="ts-chart-card">
+                <CardContent>
+                    <div class="d-flex align-items-start justify-content-between gap-2 flex-wrap mb-2">
+                        <div>
+                            <div class="ts-section-title">Sector performance heatmap</div>
+                            <div class="text-muted small">Monthly sector returns (in %)</div>
+                        </div>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <span class="ts-chip"><i class="fa-solid fa-border-all"></i> Heatmap</span>
+                        </div>
+                    </div>
+
+                    <div class="ts-heatmap-wrap">
+                        <SfHeatMap DataSource="@sectorHeatmap">
+                            <HeatMapXAxis Labels="@heatmapXAxis"></HeatMapXAxis>
+                            <HeatMapYAxis Labels="@heatmapYAxis"></HeatMapYAxis>
+                            <HeatMapCellSettings ShowLabel="true" TileType="CellType.Rect">
+                                <HeatMapCellBorder Width="1" Radius="4" Color="White"></HeatMapCellBorder>
+                            </HeatMapCellSettings>
+                            <HeatMapLegendSettings ShowLabel="true" Position="Syncfusion.Blazor.HeatMap.LegendPosition.Right" EnableSmartLegend="true" ToggleVisibility="true"></HeatMapLegendSettings>
+                            <HeatMapMargin Left="10" Right="10" Top="10" Bottom="10"></HeatMapMargin>
+                        </SfHeatMap>
+                    </div>
+                </CardContent>
+            </SfCard>
+        </div>
+
+        <div class="col-12">
+            <SfCard CssClass="ts-chart-card">
+                <CardContent>
+                    <div class="d-flex align-items-start justify-content-between gap-2 flex-wrap mb-2">
+                        <div>
+                            <div class="ts-section-title">Trade analysis</div>
+                            <div class="text-muted small">Filter, sort, and export executed trades</div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <span class="ts-chip"><i class="fa-solid fa-file-export"></i> Export</span>
+                        </div>
+                    </div>
+
+                    <div class="ts-grid">
+                        <SfGrid @ref="tradesGrid" ID="AnalyticsTradesGrid" TValue="TradeAnalysisModel" DataSource="@trades" AllowPaging="true" AllowSorting="true" AllowFiltering="true" AllowExcelExport="true" AllowPdfExport="true" Toolbar="@gridToolbar" Height="360">
+                            <GridPageSettings PageSize="10" PageCount="5"></GridPageSettings>
+                            <GridFilterSettings Type="Syncfusion.Blazor.Grids.FilterType.Menu" ShowFilterBarStatus="true"></GridFilterSettings>
+                            <GridEvents OnToolbarClick="OnTradesToolbarClick" TValue="TradeAnalysisModel"></GridEvents>
+                            <GridColumns>
+                                <GridColumn Field=@nameof(TradeAnalysisModel.Id) HeaderText="#" Width="70" TextAlign="Syncfusion.Blazor.Grids.TextAlign.Right" IsPrimaryKey="true"></GridColumn>
+                                <GridColumn Field=@nameof(TradeAnalysisModel.Symbol) HeaderText="Symbol" Width="110"></GridColumn>
+                                <GridColumn Field=@nameof(TradeAnalysisModel.Entry) HeaderText="Entry" Width="130" Format="d"></GridColumn>
+                                <GridColumn Field=@nameof(TradeAnalysisModel.Exit) HeaderText="Exit" Width="130" Format="d"></GridColumn>
+                                <GridColumn Field=@nameof(TradeAnalysisModel.DurationDays) HeaderText="Duration (D)" Width="130" TextAlign="Syncfusion.Blazor.Grids.TextAlign.Right"></GridColumn>
+                                <GridColumn Field=@nameof(TradeAnalysisModel.NetProfit) HeaderText="Net Profit" Width="140" Format="C2" TextAlign="Syncfusion.Blazor.Grids.TextAlign.Right"></GridColumn>
+                                <GridColumn Field=@nameof(TradeAnalysisModel.Strategy) HeaderText="Strategy" Width="160"></GridColumn>
+                            </GridColumns>
+                        </SfGrid>
+                    </div>
+                </CardContent>
+            </SfCard>
+        </div>
+    </div>
+</div>
+
+@code {
+    private readonly List<string> gridToolbar = new() { "ExcelExport", "PdfExport" };
+
+    private List<MetricCardModel> metrics = new();
+    private List<EquityPointModel> equity = new();
+    private List<MonthlyReturnModel> monthly = new();
+
+    private object sectorHeatmap;
+    private string[] heatmapXAxis = Array.Empty<string>();
+    private string[] heatmapYAxis = Array.Empty<string>();
+
+    private List<TradeAnalysisModel> trades = new();
+    private SfGrid<TradeAnalysisModel> tradesGrid;
+
+    protected override void OnInitialized()
+    {
+        metrics = new()
+        {
+            new() { Title = "ROI", ValueText = "18.4%", DeltaText = "+2.1% vs prior", IsPositive = true, IconCss = "fa-solid fa-chart-line" },
+            new() { Title = "Win Ratio", ValueText = "57%", DeltaText = "+3 pts", IsPositive = true, IconCss = "fa-solid fa-bullseye" },
+            new() { Title = "Avg Holding Period", ValueText = "6.2 days", DeltaText = "-0.8 days", IsPositive = true, IconCss = "fa-regular fa-clock" },
+            new() { Title = "Risk Score", ValueText = "6.7 / 10", DeltaText = "Stable", IsPositive = true, IconCss = "fa-solid fa-shield-halved" },
+        };
+
+        var start = DateTime.Today.AddDays(-90);
+        equity = Enumerable.Range(0, 91)
+            .Select(i =>
+            {
+                var d = start.AddDays(i);
+                var p = 100_000 + (i * 250) + (Math.Sin(i / 8.0) * 900);
+                var idx = 100_000 + (i * 210) + (Math.Sin((i + 5) / 9.0) * 700);
+                return new EquityPointModel { Date = d, Portfolio = Math.Round(p, 2), Index = Math.Round(idx, 2) };
+            })
+            .ToList();
+
+        monthly = new()
+        {
+            new() { Month = "Jan", ReturnPct = 1.8 },
+            new() { Month = "Feb", ReturnPct = -0.6 },
+            new() { Month = "Mar", ReturnPct = 2.4 },
+            new() { Month = "Apr", ReturnPct = 1.2 },
+            new() { Month = "May", ReturnPct = 0.4 },
+            new() { Month = "Jun", ReturnPct = -1.1 },
+            new() { Month = "Jul", ReturnPct = 1.9 },
+            new() { Month = "Aug", ReturnPct = 0.8 },
+            new() { Month = "Sep", ReturnPct = -0.3 },
+            new() { Month = "Oct", ReturnPct = 1.5 },
+            new() { Month = "Nov", ReturnPct = 2.1 },
+            new() { Month = "Dec", ReturnPct = 0.9 },
+        };
+
+        heatmapXAxis = new[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+        heatmapYAxis = new[] { "Tech", "Financials", "Energy", "Healthcare", "Industrials", "Consumer" };
+        sectorHeatmap = GetSectorHeatmapData();
+
+        trades = new()
+        {
+            new() { Id = 1001, Symbol = "AAPL", Entry = DateTime.Today.AddDays(-42), Exit = DateTime.Today.AddDays(-37), DurationDays = 5, NetProfit = 842.50, Strategy = "Momentum" },
+            new() { Id = 1002, Symbol = "MSFT", Entry = DateTime.Today.AddDays(-36), Exit = DateTime.Today.AddDays(-33), DurationDays = 3, NetProfit = -210.10, Strategy = "Mean Reversion" },
+            new() { Id = 1003, Symbol = "NVDA", Entry = DateTime.Today.AddDays(-30), Exit = DateTime.Today.AddDays(-22), DurationDays = 8, NetProfit = 1432.00, Strategy = "Breakout" },
+            new() { Id = 1004, Symbol = "TSLA", Entry = DateTime.Today.AddDays(-24), Exit = DateTime.Today.AddDays(-19), DurationDays = 5, NetProfit = 390.25, Strategy = "Momentum" },
+            new() { Id = 1005, Symbol = "JPM", Entry = DateTime.Today.AddDays(-18), Exit = DateTime.Today.AddDays(-13), DurationDays = 5, NetProfit = 122.75, Strategy = "Pairs" },
+            new() { Id = 1006, Symbol = "XOM", Entry = DateTime.Today.AddDays(-16), Exit = DateTime.Today.AddDays(-10), DurationDays = 6, NetProfit = -95.40, Strategy = "Mean Reversion" },
+            new() { Id = 1007, Symbol = "UNH", Entry = DateTime.Today.AddDays(-14), Exit = DateTime.Today.AddDays(-9), DurationDays = 5, NetProfit = 268.60, Strategy = "Swing" },
+            new() { Id = 1008, Symbol = "AMZN", Entry = DateTime.Today.AddDays(-12), Exit = DateTime.Today.AddDays(-6), DurationDays = 6, NetProfit = 610.00, Strategy = "Breakout" },
+            new() { Id = 1009, Symbol = "BAC", Entry = DateTime.Today.AddDays(-11), Exit = DateTime.Today.AddDays(-7), DurationDays = 4, NetProfit = 44.20, Strategy = "Pairs" },
+            new() { Id = 1010, Symbol = "PFE", Entry = DateTime.Today.AddDays(-9), Exit = DateTime.Today.AddDays(-4), DurationDays = 5, NetProfit = -60.00, Strategy = "Swing" },
+            new() { Id = 1011, Symbol = "META", Entry = DateTime.Today.AddDays(-8), Exit = DateTime.Today.AddDays(-2), DurationDays = 6, NetProfit = 980.35, Strategy = "Momentum" },
+            new() { Id = 1012, Symbol = "GOOGL", Entry = DateTime.Today.AddDays(-7), Exit = DateTime.Today.AddDays(-1), DurationDays = 6, NetProfit = 155.90, Strategy = "Swing" },
+        };
+    }
+
+    private int[,] GetSectorHeatmapData()
+    {
+        return new int[,]
+        {
+            { 3, 2, 4, 1, 2, -1, 3, 2, 1, 2, 4, 3 },
+            { 2, 1, 2, 2, 1, 0, 1, 1, 2, 1, 2, 2 },
+            { -2, -1, 1, 3, 2, 2, 1, 0, -1, 1, 2, 1 },
+            { 1, 2, 1, 1, 2, 1, 2, 2, 1, 1, 2, 1 },
+            { 0, 1, 2, 2, 1, -1, 1, 2, 1, 2, 1, 2 },
+            { 1, 1, 2, 1, 0, -2, 1, 1, 0, 1, 2, 1 },
+        };
+    }
+
+    private string GetDeltaCss(bool isPositive) => isPositive ? "text-success" : "text-danger";
+
+    private async Task OnTradesToolbarClick(Syncfusion.Blazor.Navigations.ClickEventArgs args)
+    {
+        // Use ID-based toolbar items; SfGrid uses {GridID}_{itemName}.
+        if (args.Item.Id == "AnalyticsTradesGrid_excelexport")
+        {
+            // Let the grid export its current dataset.
+            await tradesGrid.ExportToExcelAsync(new ExcelExportProperties());
+        }
+
+        if (args.Item.Id == "AnalyticsTradesGrid_pdfexport")
+        {
+            await tradesGrid.ExportToPdfAsync(new PdfExportProperties());
+        }
+    }
+}
