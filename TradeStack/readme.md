@@ -1,6 +1,6 @@
 # TradeStack Demo: Build a Modern Stock Trading App Front-End in Minutes with Blazor & Instruct UI
 
-This demo showcases the source code used in the YouTube video "[From Prompt to Production UI: Building an Enterprise-Grade Blazor App with Instruct UI]()". It highlights how quickly you can create a modern, responsive real-world application like a Stock Trading app frontend using [Instruct UI](https://instructui.com/), a conversational AI tool for Blazor UI development, styled with [Syncfusion Blazor](https://www.syncfusion.com/blazor-components).
+This demo showcases the source code used in the YouTube video "[From Prompt to Production UI: Building an Enterprise-Grade Blazor App with Instruct UI](https://youtu.be/vxheik1N8ME)". It highlights how quickly you can create a modern, responsive real-world application like a Stock Trading app frontend using [Instruct UI](https://instructui.com/), a conversational AI tool for Blazor UI development, styled with [Syncfusion Blazor](https://www.syncfusion.com/blazor-components).
 
 ## Prerequisites
 
