@@ -1,7 +1,7 @@
 # LearnStack Demo: Build a Modern Learning App Front-End in Minutes with Angular & Instruct UI
 
-This demo showcases the source code used in the YouTube video "From
-Prompt to Production UI: Building an Angular App with Instruct UI
+This demo showcases the source code used in the YouTube video "[From
+Prompt to Production UI: Building an Angular App with Instruct UI]
 (https://youtu.be/K9lQyvo6c1k)". It highlights how quickly you can
 create a modern, responsive real-world application like a Learning
 Platform frontend using Instruct UI, a conversational AI tool for UI
