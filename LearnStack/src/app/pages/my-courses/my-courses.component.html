@@ -1,0 +1,84 @@
+<div class="flex flex-col gap-6">
+  <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+    <div class="flex flex-col gap-2">
+      <h1 class="m-0 text-3xl font-semibold">My Courses</h1>
+      <p class="m-0 text-sm opacity-70">Track enrolled courses, pick up where you left off, and stay consistent with your learning.</p>
+    </div>
+
+    <div class="flex flex-col gap-3 sm:flex-row">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full sm:min-w-48">
+        <mat-label>Category</mat-label>
+        <mat-select [value]="selectedCategory()" (valueChange)="updateCategory($event)">
+          @for (option of categoryOptions(); track option) {
+            <mat-option [value]="option">{{ option }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full sm:min-w-56">
+        <mat-label>Sort by</mat-label>
+        <mat-select [value]="selectedSort()" (valueChange)="updateSort($event)">
+          <mat-option value="progress-desc">Highest progress</mat-option>
+          <mat-option value="progress-asc">Lowest progress</mat-option>
+          <mat-option value="title-asc">Course title</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <mat-card appearance="outlined" class="rounded-3xl !shadow-sm">
+    <mat-card-content class="flex flex-col gap-5 !p-6">
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div class="text-sm opacity-70">Enrolled Courses</div>
+          <h2 class="m-0 mt-1 text-xl font-semibold">Continue your current learning paths</h2>
+        </div>
+        <div class="flex items-center gap-2 rounded-full border border-solid border-[var(--mat-sys-outline-variant)] px-3 py-2 text-sm">
+          <mat-icon class="!text-base">menu_book</mat-icon>
+          <span>{{ visibleCourses().length }} courses</span>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-5">
+        @for (course of visibleCourses(); track course.title) {
+          <mat-card appearance="outlined" class="w-full max-w-full flex-1 basis-[320px] overflow-hidden rounded-3xl !shadow-sm">
+            <img [src]="course.thumbnail" [alt]="course.title" class="h-44 w-full object-cover" />
+
+            <mat-card-content class="flex flex-col gap-4 !p-5">
+              <div class="flex items-start justify-between gap-4">
+                <div class="min-w-0 flex-1">
+                  <div class="text-sm opacity-70">{{ course.category }}</div>
+                  <div class="mt-1 text-lg font-semibold leading-6">{{ course.title }}</div>
+                  <div class="mt-2 text-sm opacity-70">Instructor: {{ course.instructor }}</div>
+                </div>
+                <button mat-icon-button type="button" [attr.aria-label]="'Open ' + course.title">
+                  <mat-icon>more_horiz</mat-icon>
+                </button>
+              </div>
+
+              <div class="rounded-2xl border border-solid border-[var(--mat-sys-outline-variant)] p-4">
+                <div class="flex items-center justify-between text-sm">
+                  <span>Progress</span>
+                  <span>{{ course.progress }}%</span>
+                </div>
+                <div class="mt-3">
+                  <mat-progress-bar mode="determinate" [value]="course.progress"></mat-progress-bar>
+                </div>
+                <div class="mt-3 text-sm opacity-70">Next lesson: {{ course.nextLesson }}</div>
+              </div>
+
+              <div class="flex items-center justify-between gap-3 pt-1">
+                <div class="text-sm opacity-70">Resume from your last checkpoint</div>
+                <button mat-flat-button type="button">Continue Learning</button>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        } @empty {
+          <div class="flex min-h-56 w-full items-center justify-center rounded-3xl border border-dashed border-[var(--mat-sys-outline-variant)] p-8 text-sm opacity-70">
+            No courses match the current filter.
+          </div>
+        }
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

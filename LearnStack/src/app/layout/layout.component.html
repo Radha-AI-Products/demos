@@ -1,0 +1,75 @@
+<mat-sidenav-container class="h-screen">
+  <mat-sidenav
+    [opened]="sidebarOpen()"
+    mode="side"
+    class="!w-[280px] border-r border-solid border-[var(--mat-sys-outline-variant)]"
+  >
+    <div class="flex h-full flex-col p-4">
+      <div class="mb-6 flex items-center gap-3 px-3 py-2">
+        <div class="flex h-10 w-10 items-center justify-center rounded-2xl border border-solid border-[var(--mat-sys-outline-variant)] shadow-sm">
+          <mat-icon>auto_stories</mat-icon>
+        </div>
+        <div>
+          <div class="text-lg font-semibold">LearnStack</div>
+          <div class="text-sm opacity-70">Learning platform</div>
+        </div>
+      </div>
+
+      <mat-nav-list class="flex-1 !p-0">
+        @for (item of navItems(); track item.route) {
+          <a
+            mat-list-item
+            [routerLink]="item.route"
+            routerLinkActive="active-nav-item"
+            #activeLink="routerLinkActive"
+            [activated]="activeLink.isActive"
+            class="mb-2 rounded-2xl border border-solid border-transparent"
+          >
+            <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+            <span matListItemTitle>{{ item.label }}</span>
+          </a>
+        }
+      </mat-nav-list>
+
+      <mat-card appearance="outlined" class="rounded-3xl !shadow-sm">
+        <mat-card-content class="!p-4">
+          <div class="mb-2 text-sm font-medium">Upgrade your learning</div>
+          <p class="m-0 text-sm opacity-75">Access curated paths and guided assignments.</p>
+          <div class="mt-4">
+            <button mat-flat-button>View plans</button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <mat-toolbar class="border-b border-solid border-[var(--mat-sys-outline-variant)] !bg-[var(--mat-sys-surface)]">
+      <button mat-icon-button type="button" (click)="toggleSidebar()" aria-label="Toggle sidebar">
+        <mat-icon>menu</mat-icon>
+      </button>
+
+      <div class="ml-4 flex flex-1 items-center gap-4">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full max-w-xl">
+          <mat-icon matPrefix>search</mat-icon>
+          <input matInput placeholder="Search courses, lessons, topics" />
+        </mat-form-field>
+      </div>
+
+      <div class="ml-4 flex items-center gap-3">
+        <button mat-icon-button [matBadge]="3" matBadgeSize="small" aria-label="Notifications">
+          <mat-icon>notifications</mat-icon>
+        </button>
+        <button mat-icon-button aria-label="User profile">
+          <div class="flex h-9 w-9 items-center justify-center rounded-full border border-solid border-[var(--mat-sys-outline-variant)] shadow-sm">
+            <mat-icon>person</mat-icon>
+          </div>
+        </button>
+      </div>
+    </mat-toolbar>
+
+    <main class="h-[calc(100vh-64px)] overflow-auto p-4 md:p-6 lg:p-8">
+      <router-outlet />
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

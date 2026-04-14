@@ -1,0 +1,197 @@
+<div class="flex flex-col gap-6">
+  <div class="flex flex-col gap-2">
+    <div class="text-sm opacity-70">Discover new skills</div>
+    <h1 class="m-0 text-3xl font-semibold">Explore</h1>
+    <p class="m-0 max-w-3xl text-sm opacity-70">
+      Browse curated courses across design, development, data, business, and marketing with a clean, focused learning catalog.
+    </p>
+  </div>
+
+  <mat-card appearance="outlined" class="rounded-3xl !shadow-sm">
+    <mat-card-content class="flex flex-col gap-5 !p-6">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-end">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full lg:flex-1">
+          <mat-label>Search courses</mat-label>
+          <mat-icon matPrefix>search</mat-icon>
+          <input
+            matInput
+            [value]="searchQuery()"
+            (input)="updateSearch($any($event.target).value)"
+            placeholder="Search by title, instructor, or topic"
+          />
+        </mat-form-field>
+
+        <div class="flex flex-col gap-3 sm:flex-row lg:flex-none">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full sm:min-w-48">
+            <mat-label>Category</mat-label>
+            <mat-select [value]="selectedCategory()" (valueChange)="updateCategory($event)">
+              @for (option of categoryFilters; track option) {
+                <mat-option [value]="option">{{ option }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full sm:min-w-48">
+            <mat-label>Difficulty</mat-label>
+            <mat-select [value]="selectedLevel()" (valueChange)="updateLevel($event)">
+              @for (option of levelFilters; track option) {
+                <mat-option [value]="option">{{ option }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full sm:min-w-48">
+            <mat-label>Duration</mat-label>
+            <mat-select [value]="selectedDuration()" (valueChange)="updateDuration($event)">
+              @for (option of durationFilters; track option) {
+                <mat-option [value]="option">{{ option }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="text-sm font-medium">Quick browse</div>
+        @for (category of categoryFilters; track category) {
+          <button
+            mat-button
+            type="button"
+            class="rounded-full border border-solid border-[var(--mat-sys-outline-variant)] px-4"
+            [class.font-semibold]="selectedCategory() === category"
+            [class.shadow-sm]="selectedCategory() === category"
+            (click)="selectQuickCategory(category)"
+          >
+            @if (selectedCategory() === category) {
+              <mat-icon class="!mr-1 !text-base">check</mat-icon>
+            }
+            {{ category }}
+          </button>
+        }
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  @let featured = featuredCourse();
+  <div class="flex flex-wrap gap-5">
+    <mat-card appearance="outlined" class="min-w-0 flex-[2_1_560px] overflow-hidden rounded-3xl !shadow-sm">
+      <mat-card-content class="!p-0">
+        <div class="flex flex-col lg:flex-row">
+          <img [src]="featured.thumbnail" [alt]="featured.title" class="h-64 w-full object-cover lg:h-auto lg:w-[44%]" />
+          <div class="flex flex-1 flex-col gap-5 p-6">
+            <div class="flex flex-wrap items-center gap-2 text-sm">
+              <div class="rounded-full border border-solid border-[var(--mat-sys-outline-variant)] px-3 py-1">Featured</div>
+              <div class="rounded-full border border-solid border-[var(--mat-sys-outline-variant)] px-3 py-1">{{ featured.category }}</div>
+              <div class="rounded-full border border-solid border-[var(--mat-sys-outline-variant)] px-3 py-1">{{ featured.level }}</div>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <h2 class="m-0 text-2xl font-semibold">{{ featured.title }}</h2>
+              <p class="m-0 text-sm opacity-70">with {{ featured.instructor }}</p>
+              <p class="m-0 max-w-2xl text-sm opacity-75">{{ featured.description }}</p>
+            </div>
+
+            <div class="flex flex-wrap gap-4 text-sm opacity-80">
+              <div class="flex items-center gap-2 rounded-full border border-solid border-[var(--mat-sys-outline-variant)] px-3 py-2">
+                <mat-icon class="!text-base">star</mat-icon>
+                <span>{{ featured.rating }} rating</span>
+              </div>
+              <div class="flex items-center gap-2 rounded-full border border-solid border-[var(--mat-sys-outline-variant)] px-3 py-2">
+                <mat-icon class="!text-base">schedule</mat-icon>
+                <span>{{ featured.durationLabel }}</span>
+              </div>
+              <div class="flex items-center gap-2 rounded-full border border-solid border-[var(--mat-sys-outline-variant)] px-3 py-2">
+                <mat-icon class="!text-base">menu_book</mat-icon>
+                <span>{{ featured.lessons }} lessons</span>
+              </div>
+            </div>
+
+            <div class="mt-auto flex flex-wrap items-center gap-3">
+              <button mat-flat-button type="button">Start course</button>
+              <button mat-button type="button">Preview syllabus</button>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card appearance="outlined" class="flex-1 basis-[320px] rounded-3xl !shadow-sm">
+      <mat-card-content class="flex flex-col gap-4 !p-6">
+        <div>
+          <div class="text-sm opacity-70">Trending Courses</div>
+          <h2 class="m-0 mt-1 text-xl font-semibold">Popular picks this week</h2>
+        </div>
+
+        <div class="flex flex-col gap-3">
+          @for (course of trendingCourses(); track course.title) {
+            <div class="flex items-center gap-4 rounded-2xl border border-solid border-[var(--mat-sys-outline-variant)] p-3">
+              <img [src]="course.thumbnail" [alt]="course.title" class="h-16 w-24 rounded-2xl object-cover" />
+              <div class="min-w-0 flex-1">
+                <div class="truncate font-medium">{{ course.title }}</div>
+                <div class="mt-1 text-sm opacity-70">{{ course.instructor }}</div>
+                <div class="mt-2 flex items-center gap-3 text-sm opacity-80">
+                  <span class="flex items-center gap-1"><mat-icon class="!text-base">star</mat-icon>{{ course.rating }}</span>
+                  <span>{{ course.level }}</span>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <mat-card appearance="outlined" class="rounded-3xl !shadow-sm">
+    <mat-card-content class="flex flex-col gap-5 !p-6">
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div class="text-sm opacity-70">Course Catalog</div>
+          <h2 class="m-0 mt-1 text-xl font-semibold">Browse all courses</h2>
+        </div>
+        <div class="flex items-center gap-2 rounded-full border border-solid border-[var(--mat-sys-outline-variant)] px-3 py-2 text-sm">
+          <mat-icon class="!text-base">school</mat-icon>
+          <span>{{ visibleCourses().length }} matching courses</span>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-5">
+        @for (course of visibleCourses(); track course.title) {
+          <mat-card appearance="outlined" class="w-full max-w-full flex-1 basis-[280px] overflow-hidden rounded-3xl !shadow-sm">
+            <img [src]="course.thumbnail" [alt]="course.title" class="h-44 w-full object-cover" />
+
+            <mat-card-content class="flex flex-col gap-4 !p-5">
+              <div class="flex flex-wrap gap-2 text-sm">
+                <div class="rounded-full border border-solid border-[var(--mat-sys-outline-variant)] px-3 py-1">{{ course.category }}</div>
+                <div class="rounded-full border border-solid border-[var(--mat-sys-outline-variant)] px-3 py-1">{{ course.level }}</div>
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <div class="text-lg font-semibold leading-6">{{ course.title }}</div>
+                <div class="text-sm opacity-70">Instructor: {{ course.instructor }}</div>
+                <p class="m-0 text-sm opacity-75">{{ course.description }}</p>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-3 text-sm opacity-80">
+                <div class="flex items-center gap-1 rounded-full border border-solid border-[var(--mat-sys-outline-variant)] px-3 py-1.5">
+                  <mat-icon class="!text-base">star</mat-icon>
+                  <span>{{ course.rating }}</span>
+                </div>
+                <div class="rounded-full border border-solid border-[var(--mat-sys-outline-variant)] px-3 py-1.5">{{ course.durationLabel }}</div>
+                <div class="rounded-full border border-solid border-[var(--mat-sys-outline-variant)] px-3 py-1.5">{{ course.lessons }} lessons</div>
+              </div>
+
+              <div class="flex items-center justify-between gap-3 pt-1">
+                <div class="text-sm opacity-70">Self-paced</div>
+                <button mat-flat-button type="button">View course</button>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        } @empty {
+          <div class="flex min-h-56 w-full items-center justify-center rounded-3xl border border-dashed border-[var(--mat-sys-outline-variant)] p-8 text-sm opacity-70">
+            No courses match your current search and filters.
+          </div>
+        }
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

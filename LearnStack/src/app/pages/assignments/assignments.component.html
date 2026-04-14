@@ -1,0 +1,284 @@
+<div class="flex flex-col gap-6">
+  <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+    <div class="flex flex-col gap-2">
+      <span class="text-sm font-medium opacity-70">Assignments overview</span>
+      <div>
+        <h1 class="m-0 text-3xl font-semibold tracking-tight">Assignments</h1>
+        <p class="mt-2 max-w-3xl text-sm opacity-75">
+          Stay on top of upcoming work with clear due dates, urgency indicators, and quick actions.
+        </p>
+      </div>
+    </div>
+
+    <mat-card appearance="outlined" class="rounded-3xl !shadow-sm">
+      <mat-card-content class="flex items-center gap-3 !p-4">
+        <div class="flex h-11 w-11 items-center justify-center rounded-2xl border border-solid border-[var(--mat-sys-outline-variant)]">
+          <mat-icon>event_note</mat-icon>
+        </div>
+        <div>
+          <div class="text-sm opacity-70">Needs attention</div>
+          <div class="text-lg font-semibold">{{ pendingCount() + overdueCount() }}</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="flex flex-col gap-4 xl:flex-row">
+    <mat-card appearance="outlined" class="flex-1 rounded-3xl !shadow-sm">
+      <mat-card-content class="flex items-center justify-between gap-4 !p-5">
+        <div>
+          <div class="text-sm opacity-70">Pending</div>
+          <div class="mt-1 text-2xl font-semibold">{{ pendingCount() }}</div>
+        </div>
+        <div class="flex h-12 w-12 items-center justify-center rounded-2xl border border-solid border-[var(--mat-sys-outline-variant)]">
+          <mat-icon>pending_actions</mat-icon>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card appearance="outlined" class="flex-1 rounded-3xl !shadow-sm">
+      <mat-card-content class="flex items-center justify-between gap-4 !p-5">
+        <div>
+          <div class="text-sm opacity-70">Submitted</div>
+          <div class="mt-1 text-2xl font-semibold">{{ submittedCount() }}</div>
+        </div>
+        <div class="flex h-12 w-12 items-center justify-center rounded-2xl border border-solid border-[var(--mat-sys-outline-variant)]">
+          <mat-icon>task_alt</mat-icon>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card appearance="outlined" class="flex-1 rounded-3xl !shadow-sm">
+      <mat-card-content class="flex items-center justify-between gap-4 !p-5">
+        <div>
+          <div class="text-sm opacity-70">Overdue</div>
+          <div class="mt-1 text-2xl font-semibold">{{ overdueCount() }}</div>
+        </div>
+        <div class="flex h-12 w-12 items-center justify-center rounded-2xl border border-solid border-[var(--mat-sys-outline-variant)]">
+          <mat-icon>error</mat-icon>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <mat-card appearance="outlined" class="rounded-3xl !shadow-sm">
+    <mat-card-content class="flex flex-col gap-4 !p-5 lg:flex-row lg:items-end lg:justify-between">
+      <div class="flex flex-1 flex-col gap-4 md:flex-row md:flex-wrap">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full md:max-w-xs">
+          <mat-label>Status</mat-label>
+          <mat-select [value]="statusFilter()" (selectionChange)="updateStatusFilter($event.value)">
+            @for (option of statusOptions; track option) {
+              <mat-option [value]="option">{{ option }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full md:max-w-xs">
+          <mat-label>Due date</mat-label>
+          <mat-select [value]="dueDateFilter()" (selectionChange)="updateDueDateFilter($event.value)">
+            @for (option of dueDateOptions; track option) {
+              <mat-option [value]="option">{{ option }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button mat-outlined-button type="button" (click)="clearFilters()">
+          <mat-icon>filter_alt_off</mat-icon>
+          Clear filters
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  @let activeAssignment = selectedAssignment();
+  @if (activeAssignment) {
+    <mat-card appearance="outlined" class="rounded-3xl !shadow-sm">
+      <mat-card-content class="flex flex-col gap-3 !p-5 lg:flex-row lg:items-center lg:justify-between">
+        <div class="flex items-start gap-3">
+          <div class="flex h-11 w-11 items-center justify-center rounded-2xl border border-solid border-[var(--mat-sys-outline-variant)]">
+            <mat-icon>visibility</mat-icon>
+          </div>
+          <div>
+            <div class="text-sm opacity-70">Last opened</div>
+            <div class="mt-1 text-lg font-semibold">{{ activeAssignment.title }}</div>
+            <p class="m-0 mt-1 text-sm opacity-75">
+              {{ activeAssignment.course }} · {{ activeAssignment.module }} · {{ activeAssignment.estimatedTime }}
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button mat-outlined-button type="button">Open details</button>
+          @if (canSubmit(activeAssignment.status)) {
+            <button mat-flat-button type="button" (click)="submitAssignment(activeAssignment.id)">Submit now</button>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  @let filtered = filteredAssignments();
+  @if (filtered.length > 0) {
+    <mat-card appearance="outlined" class="hidden rounded-3xl !shadow-sm lg:block">
+      <mat-card-content class="!p-0">
+        <div class="overflow-x-auto">
+          <table mat-table [dataSource]="filtered" class="w-full !bg-transparent">
+            <ng-container matColumnDef="assignment">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4">Assignment</th>
+              <td mat-cell *matCellDef="let assignment" class="!px-6 !py-4">
+                <div class="flex flex-col gap-1">
+                  <div class="font-medium">{{ assignment.title }}</div>
+                  <div class="text-sm opacity-70">{{ assignment.module }} · {{ assignment.estimatedTime }}</div>
+                </div>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="course">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4">Course</th>
+              <td mat-cell *matCellDef="let assignment" class="!px-6 !py-4">
+                <span class="text-sm font-medium">{{ assignment.course }}</span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="dueDate">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4">Due date</th>
+              <td mat-cell *matCellDef="let assignment" class="!px-6 !py-4">
+                <div class="flex flex-col gap-1">
+                  <span class="font-medium">{{ assignment.dueDate | date:'MMM d, y' }}</span>
+                  <span class="text-sm opacity-70">{{ getDueLabel(assignment.dueDate, assignment.status) }}</span>
+                </div>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4">Status</th>
+              <td mat-cell *matCellDef="let assignment" class="!px-6 !py-4">
+                <div
+                  class="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-medium"
+                  [class.border-amber-200]="assignment.status === 'Pending'"
+                  [class.text-amber-800]="assignment.status === 'Pending'"
+                  [class.border-emerald-200]="assignment.status === 'Submitted'"
+                  [class.text-emerald-800]="assignment.status === 'Submitted'"
+                  [class.border-rose-200]="assignment.status === 'Overdue'"
+                  [class.text-rose-800]="assignment.status === 'Overdue'"
+                >
+                  <mat-icon class="!text-[18px]">{{ getStatusIcon(assignment.status) }}</mat-icon>
+                  {{ assignment.status }}
+                </div>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="urgency">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4">Urgency</th>
+              <td mat-cell *matCellDef="let assignment" class="!px-6 !py-4">
+                <div
+                  class="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-medium"
+                  [class.border-rose-200]="assignment.urgency === 'high'"
+                  [class.text-rose-800]="assignment.urgency === 'high'"
+                  [class.border-amber-200]="assignment.urgency === 'medium'"
+                  [class.text-amber-800]="assignment.urgency === 'medium'"
+                  [class.border-slate-200]="assignment.urgency === 'low'"
+                  [class.text-slate-700]="assignment.urgency === 'low'"
+                >
+                  <mat-icon class="!text-[18px]">{{ getUrgencyIcon(assignment.urgency) }}</mat-icon>
+                  {{ getUrgencyLabel(assignment.urgency) }}
+                </div>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4">Actions</th>
+              <td mat-cell *matCellDef="let assignment" class="!px-6 !py-4">
+                <div class="flex items-center gap-3">
+                  <button mat-outlined-button type="button" (click)="viewAssignment(assignment.id)">View</button>
+                  @if (canSubmit(assignment.status)) {
+                    <button mat-flat-button type="button" (click)="submitAssignment(assignment.id)">Submit</button>
+                  }
+                </div>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+          </table>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <div class="flex flex-col gap-4 lg:hidden">
+      @for (assignment of filtered; track assignment.id) {
+        <mat-card appearance="outlined" class="rounded-3xl !shadow-sm">
+          <mat-card-content class="flex flex-col gap-4 !p-5">
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex flex-col gap-1">
+                <div class="text-lg font-semibold">{{ assignment.title }}</div>
+                <div class="text-sm opacity-70">{{ assignment.course }}</div>
+                <div class="text-sm opacity-70">{{ assignment.module }} · {{ assignment.estimatedTime }}</div>
+              </div>
+
+              <button mat-icon-button type="button" aria-label="View assignment" (click)="viewAssignment(assignment.id)">
+                <mat-icon>visibility</mat-icon>
+              </button>
+            </div>
+
+            <div class="flex flex-wrap gap-3">
+              <div
+                class="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-medium"
+                [class.border-amber-200]="assignment.status === 'Pending'"
+                [class.text-amber-800]="assignment.status === 'Pending'"
+                [class.border-emerald-200]="assignment.status === 'Submitted'"
+                [class.text-emerald-800]="assignment.status === 'Submitted'"
+                [class.border-rose-200]="assignment.status === 'Overdue'"
+                [class.text-rose-800]="assignment.status === 'Overdue'"
+              >
+                <mat-icon class="!text-[18px]">{{ getStatusIcon(assignment.status) }}</mat-icon>
+                {{ assignment.status }}
+              </div>
+
+              <div
+                class="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-medium"
+                [class.border-rose-200]="assignment.urgency === 'high'"
+                [class.text-rose-800]="assignment.urgency === 'high'"
+                [class.border-amber-200]="assignment.urgency === 'medium'"
+                [class.text-amber-800]="assignment.urgency === 'medium'"
+                [class.border-slate-200]="assignment.urgency === 'low'"
+                [class.text-slate-700]="assignment.urgency === 'low'"
+              >
+                <mat-icon class="!text-[18px]">{{ getUrgencyIcon(assignment.urgency) }}</mat-icon>
+                {{ getUrgencyLabel(assignment.urgency) }}
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-1 rounded-2xl border border-solid border-[var(--mat-sys-outline-variant)] p-4">
+              <span class="text-sm opacity-70">Due date</span>
+              <span class="font-medium">{{ assignment.dueDate | date:'EEEE, MMM d' }}</span>
+              <span class="text-sm opacity-70">{{ getDueLabel(assignment.dueDate, assignment.status) }}</span>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <button mat-outlined-button type="button" (click)="viewAssignment(assignment.id)">View</button>
+              @if (canSubmit(assignment.status)) {
+                <button mat-flat-button type="button" (click)="submitAssignment(assignment.id)">Submit</button>
+              }
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  } @else {
+    <mat-card appearance="outlined" class="rounded-3xl !shadow-sm">
+      <mat-card-content class="flex flex-col items-center gap-3 !p-10 text-center">
+        <div class="flex h-14 w-14 items-center justify-center rounded-2xl border border-solid border-[var(--mat-sys-outline-variant)]">
+          <mat-icon>task</mat-icon>
+        </div>
+        <div class="text-xl font-semibold">No assignments match these filters</div>
+        <p class="m-0 max-w-md text-sm opacity-75">
+          Try adjusting the status or due date filters to see more course work.
+        </p>
+        <button mat-outlined-button type="button" (click)="clearFilters()">Reset filters</button>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

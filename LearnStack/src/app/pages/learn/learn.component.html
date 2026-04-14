@@ -1,0 +1,227 @@
+@let lesson = currentLesson();
+
+<div class="flex flex-col gap-6">
+  <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+    <div class="flex flex-col gap-2">
+      <div class="text-sm uppercase tracking-[0.2em] opacity-60">Learn</div>
+      <h1 class="m-0 text-3xl font-semibold">{{ courseTitle }}</h1>
+      <p class="m-0 max-w-3xl text-sm leading-6 opacity-75">{{ courseSubtitle }}</p>
+    </div>
+
+    <mat-card appearance="outlined" class="rounded-3xl !shadow-sm lg:min-w-[320px]">
+      <mat-card-content class="flex items-center justify-between gap-4 !p-5">
+        <div>
+          <div class="text-sm opacity-70">Course completion</div>
+          <div class="mt-1 text-2xl font-semibold">{{ courseProgress() }}%</div>
+        </div>
+        <div class="rounded-full border border-solid border-[var(--mat-sys-outline-variant)] px-3 py-2 text-sm">
+          {{ completedLessonCount() }}/{{ totalLessonCount() }} lessons
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="flex flex-col gap-6 xl:flex-row">
+    <section class="min-w-0 flex-1 flex flex-col gap-6">
+      <mat-card appearance="outlined" class="rounded-3xl !shadow-sm">
+        <mat-card-content class="flex flex-col gap-5 !p-6">
+          <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <div class="flex flex-col gap-2">
+              <div class="flex flex-wrap items-center gap-2 text-sm opacity-70">
+                <span>Lesson {{ currentLessonNumber() }} of {{ totalLessonCount() }}</span>
+                <span>•</span>
+                <span>{{ lesson.moduleTitle }}</span>
+                <span>•</span>
+                <span>{{ lesson.type }}</span>
+                <span>•</span>
+                <span>{{ lesson.duration }}</span>
+              </div>
+              <div class="text-2xl font-semibold leading-8">{{ lesson.title }}</div>
+              <p class="m-0 max-w-3xl text-sm leading-6 opacity-75">{{ lesson.description }}</p>
+            </div>
+
+            <div class="flex items-center gap-2">
+              @if (lesson.completed) {
+                <div class="flex items-center gap-2 rounded-full border border-solid border-[var(--mat-sys-outline-variant)] px-3 py-2 text-sm">
+                  <mat-icon class="!text-base">check_circle</mat-icon>
+                  <span>Completed</span>
+                </div>
+              } @else {
+                <button mat-outlined-button type="button" (click)="markCurrentLessonComplete()">
+                  <mat-icon>task_alt</mat-icon>
+                  Mark complete
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="relative overflow-hidden rounded-[28px] border border-solid border-[var(--mat-sys-outline-variant)]">
+            <img [src]="lesson.thumbnail" [alt]="lesson.title" class="aspect-video w-full object-cover" />
+            <div class="absolute inset-0 flex items-center justify-center bg-black/20">
+              <button mat-flat-button type="button">
+                <mat-icon>play_arrow</mat-icon>
+                Play lesson
+              </button>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card appearance="outlined" class="rounded-3xl !shadow-sm">
+        <mat-card-content class="flex flex-col gap-4 !p-6">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div class="text-sm opacity-70">Progress through this course</div>
+              <div class="mt-1 text-lg font-semibold">Keep a steady pace with the next lesson already lined up.</div>
+            </div>
+            <div class="rounded-full border border-solid border-[var(--mat-sys-outline-variant)] px-3 py-2 text-sm">
+              {{ courseProgress() }}% complete
+            </div>
+          </div>
+
+          <mat-progress-bar mode="determinate" [value]="courseProgress()"></mat-progress-bar>
+
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <button mat-outlined-button type="button" (click)="goToPreviousLesson()" [disabled]="previousLesson() === null">
+              <mat-icon>west</mat-icon>
+              Previous lesson
+            </button>
+
+            <button mat-flat-button type="button" (click)="goToNextLesson()" [disabled]="nextLesson() === null">
+              Next lesson
+              <mat-icon>east</mat-icon>
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card appearance="outlined" class="rounded-3xl !shadow-sm">
+        <mat-card-content class="!p-6">
+          <mat-tab-group>
+            <mat-tab label="Notes">
+              <div class="flex flex-col gap-4 py-5">
+                @for (note of lesson.notes; track note.title) {
+                  <div class="rounded-2xl border border-solid border-[var(--mat-sys-outline-variant)] p-4">
+                    <div class="text-sm font-semibold">{{ note.title }}</div>
+                    <p class="m-0 mt-2 text-sm leading-6 opacity-75">{{ note.content }}</p>
+                  </div>
+                }
+              </div>
+            </mat-tab>
+
+            <mat-tab label="Discussion">
+              <div class="flex flex-col gap-4 py-5">
+                @for (item of lesson.discussion; track item.author + item.time) {
+                  <div class="rounded-2xl border border-solid border-[var(--mat-sys-outline-variant)] p-4">
+                    <div class="flex items-start justify-between gap-4">
+                      <div>
+                        <div class="text-sm font-semibold">{{ item.author }}</div>
+                        <div class="mt-1 text-xs uppercase tracking-[0.12em] opacity-60">{{ item.role }}</div>
+                      </div>
+                      <div class="text-xs opacity-60">{{ item.time }}</div>
+                    </div>
+                    <p class="m-0 mt-3 text-sm leading-6 opacity-75">{{ item.message }}</p>
+                  </div>
+                }
+              </div>
+            </mat-tab>
+
+            <mat-tab label="Resources">
+              <div class="flex flex-col gap-4 py-5">
+                @for (resource of lesson.resources; track resource.title) {
+                  <div class="flex items-center justify-between gap-4 rounded-2xl border border-solid border-[var(--mat-sys-outline-variant)] p-4">
+                    <div class="flex min-w-0 items-center gap-3">
+                      <div class="flex h-10 w-10 items-center justify-center rounded-full border border-solid border-[var(--mat-sys-outline-variant)]">
+                        <mat-icon>{{ resource.icon }}</mat-icon>
+                      </div>
+                      <div class="min-w-0">
+                        <div class="truncate text-sm font-semibold">{{ resource.title }}</div>
+                        <div class="mt-1 text-xs opacity-70">{{ resource.kind }} • {{ resource.detail }}</div>
+                      </div>
+                    </div>
+                    <button mat-button type="button">Open</button>
+                  </div>
+                }
+              </div>
+            </mat-tab>
+          </mat-tab-group>
+        </mat-card-content>
+      </mat-card>
+    </section>
+
+    <aside class="w-full xl:w-[360px] xl:self-start">
+      <mat-card appearance="outlined" class="rounded-3xl !shadow-sm xl:sticky xl:top-0">
+        <mat-card-content class="flex flex-col gap-5 !p-5">
+          <div class="flex flex-col gap-2">
+            <div class="text-lg font-semibold">Course modules</div>
+            <p class="m-0 text-sm leading-6 opacity-75">Stay focused with a clear lesson path and pick up exactly where you left off.</p>
+          </div>
+
+          <div class="rounded-2xl border border-solid border-[var(--mat-sys-outline-variant)] p-4">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <div class="text-sm opacity-70">Current lesson</div>
+                <div class="mt-1 text-base font-semibold leading-6">{{ lesson.title }}</div>
+              </div>
+              <div class="rounded-full border border-solid border-[var(--mat-sys-outline-variant)] px-2.5 py-1 text-xs">
+                {{ currentLessonNumber() }}/{{ totalLessonCount() }}
+              </div>
+            </div>
+            <div class="mt-4">
+              <mat-progress-bar mode="determinate" [value]="courseProgress()"></mat-progress-bar>
+            </div>
+          </div>
+
+          <div class="flex max-h-[calc(100vh-260px)] flex-col gap-3 overflow-auto pr-1">
+            @for (module of modules(); track module.id) {
+              <div class="rounded-3xl border border-solid border-[var(--mat-sys-outline-variant)] p-4">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="min-w-0">
+                    <div class="text-sm font-semibold">{{ module.title }}</div>
+                    <div class="mt-1 text-xs leading-5 opacity-70">{{ module.summary }}</div>
+                  </div>
+                  <div class="rounded-full border border-solid border-[var(--mat-sys-outline-variant)] px-2.5 py-1 text-xs">
+                    {{ moduleCompletionCount(module) }}/{{ module.lessons.length }}
+                  </div>
+                </div>
+
+                <div class="mt-4 flex flex-col gap-2">
+                  @for (moduleLesson of module.lessons; track moduleLesson.id) {
+                    <button
+                      type="button"
+                      class="w-full rounded-2xl border border-solid p-3 text-left transition-shadow hover:shadow-sm"
+                      [style.border-color]="isCurrentLesson(moduleLesson.id) ? 'var(--mat-sys-primary)' : 'var(--mat-sys-outline-variant)'"
+                      [style.boxShadow]="isCurrentLesson(moduleLesson.id) ? '0 0 0 1px var(--mat-sys-primary)' : 'none'"
+                      (click)="selectLesson(moduleLesson.id)"
+                    >
+                      <div class="flex items-start gap-3">
+                        <div class="flex h-9 w-9 items-center justify-center rounded-full border border-solid border-[var(--mat-sys-outline-variant)]">
+                          <mat-icon>{{ moduleLesson.completed ? 'check' : (isCurrentLesson(moduleLesson.id) ? 'play_arrow' : 'menu_book') }}</mat-icon>
+                        </div>
+
+                        <div class="min-w-0 flex-1">
+                          <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0 text-sm font-medium leading-5">{{ moduleLesson.title }}</div>
+                            <div class="whitespace-nowrap text-xs opacity-60">{{ moduleLesson.duration }}</div>
+                          </div>
+                          <div class="mt-1 flex flex-wrap items-center gap-2 text-xs opacity-70">
+                            <span>{{ moduleLesson.type }}</span>
+                            @if (moduleLesson.completed) {
+                              <span>• Completed</span>
+                            } @else if (isCurrentLesson(moduleLesson.id)) {
+                              <span>• Current lesson</span>
+                            }
+                          </div>
+                        </div>
+                      </div>
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </aside>
+  </div>
+</div>

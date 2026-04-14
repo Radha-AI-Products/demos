@@ -1,0 +1,36 @@
+@use '@angular/material' as mat;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+html {
+  height: 100%;
+  color-scheme: light;
+  scroll-behavior: smooth;
+  @include mat.theme((
+    color: (
+      primary: mat.$azure-palette,
+      tertiary: mat.$violet-palette,
+      theme-type: light,
+    ),
+    typography: Inter,
+    density: 0,
+  ));
+}
+
+body {
+  color-scheme: light;
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--mat-sys-primary) 8%, transparent), transparent 28%),
+    radial-gradient(circle at top right, color-mix(in srgb, var(--mat-sys-tertiary) 10%, transparent), transparent 24%),
+    color-mix(in srgb, var(--mat-sys-surface) 92%, white);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  min-height: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
